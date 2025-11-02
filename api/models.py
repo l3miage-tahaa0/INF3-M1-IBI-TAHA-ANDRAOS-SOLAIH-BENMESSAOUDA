@@ -12,12 +12,22 @@ class UserSchema(BaseModel):
                 "password": "password"
             }
         }
+class UserDataResponse(BaseModel):
+    email: EmailStr = Field(...)
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "abdul@example.com"
+            }
+        }
 
 class UserInDB(UserSchema):
     hashed_password: str
 
 class TokenSchema(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
 
 class TokenData(BaseModel):

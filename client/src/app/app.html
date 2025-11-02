@@ -1,0 +1,13 @@
+    
+<nav>
+  <ul>
+    <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
+    <li *ngIf="!(authService.isAuthenticated$ | async)"><a routerLink="/login" routerLinkActive="active">Login</a></li>
+    <li *ngIf="!(authService.isAuthenticated$ | async)"><a routerLink="/signup" routerLinkActive="active">Sign Up</a></li>
+    <li *ngIf="authService.isAuthenticated$ | async"><a href="#" (click)="authService.logout()">Logout</a></li>
+  </ul>
+</nav>
+
+<router-outlet></router-outlet>
+
+  
