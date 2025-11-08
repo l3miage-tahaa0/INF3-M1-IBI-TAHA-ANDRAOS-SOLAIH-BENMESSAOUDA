@@ -8,8 +8,7 @@ from jose import JWTError, jwt
 from auth import get_password_hash, verify_password, create_refresh_token, create_access_token, get_current_user, credentials_exception
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-
-
+from routes.projects import project_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.router.include_router(auth_router)
+app.router.include_router(project_router)
 @app.get("/users/me", response_model=UserDataResponse)
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return UserDataResponse(**current_user)

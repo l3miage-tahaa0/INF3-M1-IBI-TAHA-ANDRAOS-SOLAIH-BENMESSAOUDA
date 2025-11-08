@@ -1,6 +1,14 @@
 from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
+from datetime import datetime
+from typing import Optional, List
 
+#ProjectUser models
+class ProjectUser(BaseModel):
+    id: str
+    project_id: str
+    title: str
+    access_role: str
+    added_at: Optional[datetime]
 class UserSchema(BaseModel):
     email: EmailStr = Field(...)
     password: str = Field(...)
@@ -14,7 +22,7 @@ class UserSchema(BaseModel):
         }
 class UserDataResponse(BaseModel):
     email: EmailStr = Field(...)
-
+    projects: List[ProjectUser]
     class Config:
         schema_extra = {
             "example": {
@@ -32,3 +40,16 @@ class TokenSchema(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+# Project models
+class Project(BaseModel):
+    id: str
+    title: str
+    description: str
+    created_at: datetime
+    updated_at: datetime
+
+class CreateProjectRequest(BaseModel):
+    title: str
+    description: str
+
