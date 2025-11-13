@@ -3,21 +3,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 
 from db import get_database
-from models import UserSchema, UserDataResponse, TokenSchema, UserInDB
+from models import CreateUserRequest, UserDataResponse, TokenSchema, LoginUserRequest
 from jose import JWTError, jwt
 from auth import get_password_hash, get_current_token, verify_password, create_refresh_token, create_access_token, get_current_user, credentials_exception
 from config import settings
 from pymongo.errors import DuplicateKeyError
 auth_router = APIRouter(prefix="/auth")
 
-@auth_router.post("/signup", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
-async def user_signup(user: UserSchema = Body(...)):
+@auth_router.post("/signup", response_model=UserDataResponse, status_code=status.HTTP_201_CREATED)
+async def user_signup(user: CreateUserRequest):
     db = get_database()
     hashed_password = get_password_hash(user.password)
     user_in_db = user.model_dump()
-    user_in_db["hashed_password"] = hashed_password
-    del user_in_db["password"] # Ensure plain password is not in the dict
-
+    user_in_db["password"] = hashed_password
     try:
         await db["users"].insert_one(user_in_db)
     except DuplicateKeyError:
@@ -28,7 +26,7 @@ async def user_signup(user: UserSchema = Body(...)):
     return user
 
 @auth_router.post("/login", response_model=TokenSchema)
-async def login(form_data: UserSchema = Body(...)):
+async def login(form_data: LoginUserRequest):
     db = get_database()
     user = await db["users"].find_one({"email": form_data.email})
     
