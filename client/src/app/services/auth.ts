@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, timer } from 'rxjs';
 import { tap, catchError, map, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 interface AuthResponse {
   access_token: string;
   refresh_token: string;
@@ -11,7 +12,7 @@ interface AuthResponse {
   providedIn: 'root'
 })
 export class Auth {
-  private apiUrl = 'http://localhost:8000/auth';
+  private apiUrl = environment.apiUrl + 'auth';
 
   private accessTokenKey = 'access_token';
   private refreshTokenKey = 'refresh_token';

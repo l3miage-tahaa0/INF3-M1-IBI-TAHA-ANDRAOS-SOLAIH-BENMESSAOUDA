@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Project } from '../interfaces/project.interface';
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8000/projects';
+  private apiUrl = environment.apiUrl + 'projects';
   private http = inject(HttpClient);
   getProjects() {
     // Implementation for fetching projects from the backend API
