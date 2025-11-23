@@ -1,0 +1,18 @@
+<app-navbar></app-navbar>
+<div class="project-create-page">
+	<div class="project-create-card">
+		<h1 class="project-create-title">New Project</h1>
+
+		<div class="project-form">
+			<div class="input-group">
+				<input type="text" [(ngModel)]="project.title" placeholder="Project Title" />
+			</div>
+            <div class="input-validation-message" *ngIf="titleError">{{ titleError }}</div>
+			<div class="input-group">
+				<textarea rows="6" [(ngModel)]="project.description" placeholder="Project Description"></textarea>
+			</div>
+            <div class="input-validation-message" *ngIf="descriptionError">{{ descriptionError }}</div>
+			<button class="create-btn" (click)="create()">Create</button>
+		</div>
+	</div>
+</div>

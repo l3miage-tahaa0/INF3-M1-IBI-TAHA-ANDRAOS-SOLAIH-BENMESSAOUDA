@@ -1,0 +1,21 @@
+
+<app-navbar></app-navbar>
+
+<div class="projects-page">
+	<div class="projects-card">
+		<div class="projects-header">
+			<h2>Projects</h2>
+			<button class="add-btn" (click)="goToProjectCreationPage()">+</button>
+		</div>
+
+		<div class="projects-list">
+			<div class="project-item"  *ngFor="let p of projects()" (click)="goToProject(p._id)">
+				<div class="project-title">{{ p.title }}</div>
+				<div class="project-meta">
+					<span class="member-icon"></span>
+					<span class="member-count">{{ p.members.length + p.managers.length }}</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

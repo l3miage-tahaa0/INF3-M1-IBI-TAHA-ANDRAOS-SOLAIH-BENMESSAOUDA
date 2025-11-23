@@ -1,36 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Auth } from '../../services/auth';
 import { HttpClient } from '@angular/common/http';
-import { CommonModule, JsonPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { ProjectService } from '../../services/project.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
-  imports: [JsonPipe, CommonModule],
+  imports: [CommonModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home {
-  protectedData: any;
+export class Home implements OnInit{
   errorMessage: string | null = null;
+  router = inject(Router);
+  constructor(private http: HttpClient) { }
 
-  constructor(private authService: Auth, private http: HttpClient) { }
-
-  logout(): void {
-    this.authService.logout();
+  ngOnInit(): void {
   }
 
-  // Example of making an authenticated request
-  fetchProtectedData(): void {
-    this.errorMessage = null;
-    this.http.get('http://localhost:8000/users/me').subscribe({
-      next: (data) => {
-        this.protectedData = data;
-        console.log('Protected data:', data);
-      },
-      error: (err) => {
-        this.errorMessage = err.error?.message || 'Failed to fetch protected data.';
-        console.error('Error fetching protected data:', err);
-      }
-    });
-  }
 }

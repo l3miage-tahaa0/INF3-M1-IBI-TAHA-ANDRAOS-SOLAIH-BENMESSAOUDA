@@ -1,0 +1,14 @@
+<div class="team-dropdown">
+	<label class="td-label">Select a team member</label>
+	<div class="td-row">
+		<select [formControl]="control" (change)="onChange()">
+			<option value="">-- choose --</option>
+			<optgroup label="Managers" *ngIf="project?.managers?.length">
+				<option *ngFor="let m of project?.managers" [value]="m | json">{{ m.first_name }} {{ m.last_name }}</option>
+			</optgroup>
+			<optgroup label="Members" *ngIf="project?.members?.length">
+				<option *ngFor="let m of project?.members" [value]="m | json">{{ m.first_name }} {{ m.last_name }}</option>
+			</optgroup>
+		</select>
+	</div>
+</div>

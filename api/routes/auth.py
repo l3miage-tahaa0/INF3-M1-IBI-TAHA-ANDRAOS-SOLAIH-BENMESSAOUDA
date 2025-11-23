@@ -30,7 +30,7 @@ async def login(form_data: LoginUserRequest):
     db = get_database()
     user = await db["users"].find_one({"email": form_data.email})
     
-    if not user or not verify_password(form_data.password, user["hashed_password"]):
+    if not user or not verify_password(form_data.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

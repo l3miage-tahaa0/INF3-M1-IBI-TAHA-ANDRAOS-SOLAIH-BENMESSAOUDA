@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Squada+One&display=swap');
+
+:root{ --blue:#2b85e8; --light:#dbeeff }
+
+.profile-page { background:var(--light); min-height:calc(100vh - 200px); display:flex; align-items:center; justify-content:center; padding:40px; color:#6eacf6; }
+.profile-card { background:white; width:560px; border-radius:22px; padding:48px; text-align:center }
+.profile-card h1 { font-family:'Squada One', system-ui; color:var(--blue); font-size:44px; margin:0 0 18px }
+.avatar { font-size:72px; color: #6fb9ff; margin:18px 0 }
+.info-row { display:flex; align-items:center; gap:18px; margin:18px 0 }
+.info-icon { font-size:28px; color: #6fb9ff }
+.info-text { font-family:'Squada One', system-ui; color:var(--blue); font-size:28px }
+.signout-row { margin-top:28px }
+.signout-btn { background:transparent; border:none; color:var(--blue); font-family:'Squada One', system-ui; font-size:22px; cursor:pointer }

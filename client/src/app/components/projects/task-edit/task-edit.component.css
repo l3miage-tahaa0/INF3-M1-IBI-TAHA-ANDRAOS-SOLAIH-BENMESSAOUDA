@@ -1,0 +1,5 @@
+/* reuse styles from task-create for consistent look */
+@import '../task-create/task-create.component.css';
+
+/* small overrides for edit */
+.task-header h2 { color:#2b85e8 }

@@ -20,8 +20,11 @@ export class Signup {
     private router: Router
   ) {
     this.signupForm = this.fb.group({
+      firstName: ['', [Validators.required]],
+      lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
@@ -41,5 +44,8 @@ export class Signup {
     } else {
       this.errorMessage = 'Please fill in all required fields correctly.';
     }
+  }
+  navigateToLogin(): void {
+    this.router.navigate(['/login']);
   }
 }

@@ -1,0 +1,31 @@
+<app-navbar></app-navbar>
+<div class="project-details-page">
+@if(!showTaskCreate()){
+
+	<div class="project-title-pill">{{ project()?.title }}</div>	
+	<div class="tasks-card">
+		<div class="tasks-header">
+			<h3>Tasks</h3>
+			<div class="tasks-actions">
+				<button class="add-btn" (click)="toggleTaskCreate()">+</button>
+				<button class="filter-btn" (click)="goToProjectSettings()">⚙</button>
+			</div>
+		</div>
+
+		<div class="tasks-list">
+			<div class="task-item" *ngFor="let t of tasks()" (click)="goToTaskDetails(t._id)">
+				<span class="priority {{ t.priority }}">{{ t.priority }}</span>
+				<div class="task-title">{{ t.title }}</div>
+				<div class="task-right">
+					<span class="member-icon"></span>
+					<span class="assignee">{{ t.assigned_to?.first_name }}</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+}@else{
+	<app-task-create (taskFormOutput)="createTask($event)" (cancelOutput)="toggleTaskCreate()"></app-task-create>
+}
+</div>
+

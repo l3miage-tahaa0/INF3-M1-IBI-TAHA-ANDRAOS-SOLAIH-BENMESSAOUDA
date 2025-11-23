@@ -57,7 +57,7 @@ export class Auth {
       tap(response => {
         this.setTokens(response);
         this.scheduleTokenRefresh();
-        this.router.navigate(['/home']);
+        this.router.navigate(['/projects']);
       }),
       catchError(error => {
         console.error('Login failed:', error);
@@ -67,7 +67,13 @@ export class Auth {
   }
 
   signup(credentials: any): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, credentials).pipe(
+    const requestBody = {
+      first_name: credentials.firstName,
+      last_name: credentials.lastName,
+      email: credentials.email,
+      password: credentials.password
+    }
+    return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, requestBody).pipe(
       tap(response => {
         this.router.navigate(['/login']);
       }),
