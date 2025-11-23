@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from routes.auth import auth_router
 from db import connect_to_mongo, close_mongo_connection, get_database
-from models import UserSchema, UserDataResponse, TokenSchema, UserInDB
+from models import UserDataResponse
 from jose import JWTError, jwt
 from auth import get_password_hash, verify_password, create_refresh_token, create_access_token, get_current_user, credentials_exception
 from contextlib import asynccontextmanager

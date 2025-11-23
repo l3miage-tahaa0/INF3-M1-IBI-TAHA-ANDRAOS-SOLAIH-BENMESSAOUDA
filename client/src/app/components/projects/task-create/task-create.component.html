@@ -1,0 +1,44 @@
+
+	<div class="task-create-page">
+		<div class="task-create-card">
+			<div class="task-header">
+				<h2>New Task</h2>
+				<div class="project-pill">INF 3 - Mongo Db</div>
+			</div>
+
+			<form [formGroup]="form" class="task-form" (ngSubmit)="create()">
+				<div class="row">
+					<div class="input-col">
+						<div class="input-group">
+							<input formControlName="title" placeholder="Task Title" />
+						</div>
+						<div *ngIf="form.get('title')?.invalid && form.get('title')?.touched" class="error-message">
+							<div *ngIf="form.get('title')?.errors?.['required']">Title is required.</div>
+							<div *ngIf="form.get('title')?.errors?.['minlength']">Title must be at least 3 characters.</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row small-gap">
+					<div class="input-col">
+						<div class="priority-buttons">
+							<button type="button" [class.selected]="form.get('priority')?.value==='High'" class="priority high" (click)="form.get('priority')?.setValue('High')">High</button>
+							<button type="button" [class.selected]="form.get('priority')?.value==='Medium'" class="priority medium" (click)="form.get('priority')?.setValue('Medium')">Medium</button>
+							<button type="button" [class.selected]="form.get('priority')?.value==='Low'" class="priority low" (click)="form.get('priority')?.setValue('Low')">Low</button>
+						</div>
+					</div>
+					<div class="input-col">
+						<div class="input-group"><input type="date" formControlName="deadline" placeholder="Deadline" /></div>
+					</div>
+				</div>
+
+				<div class="input-group"><textarea rows="6" formControlName="description" placeholder="Task Description"></textarea></div>
+				<div *ngIf="form.get('description')?.invalid && form.get('description')?.touched" class="error-message">
+					<div *ngIf="form.get('description')?.errors?.['maxlength']">Description is too long.</div>
+				</div>
+
+				<div style="text-align:center"><button class="create-btn" type="submit" [disabled]="form.invalid">Create</button></div>
+                <div style="text-align:center"><button class="cancel-btn" (click)="cancel()">Cancel</button></div>
+			</form>
+		</div>
+	</div>

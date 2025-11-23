@@ -3,15 +3,6 @@
   <h2>Welcome to the Home Page!</h2>
   <p>You are logged in.</p>
 
-  <button (click)="fetchProtectedData()">Fetch Protected Data</button>
-
-  <div *ngIf="protectedData" class="data-display">
-    <h3>Protected Data:</h3>
-    <pre>{{ protectedData | json }}</pre>
-  </div>
   <p *ngIf="errorMessage" class="error-message api-error">{{ errorMessage }}</p>
-
-  <button class="logout-button" (click)="logout()">Logout</button>
+  <button (click)="router.navigate(['/projects'])" class="btn btn-primary">My Projects</button>
 </div>
-
-  

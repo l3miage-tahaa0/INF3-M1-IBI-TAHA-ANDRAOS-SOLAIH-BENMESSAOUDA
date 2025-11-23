@@ -1,0 +1,4 @@
+.top-nav { display:flex; align-items:center; justify-content:space-between; padding: 12px 40px; background: white }
+.nav-logo { height:32px }
+.nav-actions { display:flex; gap:18px }
+.nav-btn { background:#2b85e8; color:white; border:none; padding:10px 18px; border-radius:12px; font-weight:700 }

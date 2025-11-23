@@ -1,0 +1,34 @@
+
+/* layout */
+.task-create-page { min-height: calc(100vh - 64px); background:#dbeeff; display:flex; align-items:center; justify-content:center; padding:28px 28px }
+.task-create-card { background:white; width:min(900px,95vw); border-radius:22px; overflow:hidden }
+.task-header { background:#bfe0ff; padding:22px; display:flex; align-items:center; justify-content:center; position:relative }
+.task-header h2 { margin:0; font-size:36px; color:#2b85e8 }
+.project-pill { position:absolute; right:20px; top:14px; background:white; padding:8px 18px; border-radius:18px; color:#2b85e8 }
+.task-form { padding:22px }
+.row { display:flex; gap:18px }
+.input-col { flex:1 }
+.input-group { border:2px solid rgba(43,133,232,0.25); border-radius:10px; padding:12px }
+.input-group input, .input-group textarea { border:none; outline:none; width:100%; font-size:16px; color:#1e6fb3 }
+.input-group input[type="date"] { padding:8px 6px; color:#1e6fb3 }
+.small-gap { margin-top:12px }
+.priority-buttons { display:flex; gap:12px; align-items:center }
+.priority { border:none; padding:10px 12px; border-radius:8px; font-weight:700; color: white; flex:1; text-align:center }
+.priority.high { background:#ff8888 }
+.priority.medium { background:#ffd596 }
+.priority.low { background:#b7f49b }
+.priority.selected { box-shadow: 0 6px 18px rgba(43,133,232,0.18); transform: translateY(-2px); outline: 3px solid rgba(43,133,232,0.12); }
+.priority-badge { margin-left:12px; font-weight:700; color:#2b85e8; white-space:nowrap }
+.create-btn { background:#2b85e8; color:white; padding:10px 22px; border-radius:10px; border:none; font-weight:700; margin-top:12px }
+.cancel-btn { background:#ff8888; color:white; padding:10px 22px; border-radius:10px; border:none; font-weight:700; margin-top:12px }
+
+@media (max-width:800px) {
+	.row { flex-direction:column }
+	.priority-buttons { flex-direction:row }
+	.priority-badge { margin-top:8px }
+}
+
+@media (max-height:700px) {
+	/* on short screens, don't perfectly center - keep some top padding */
+	.task-create-page { align-items:flex-start; padding-top:20px }
+}

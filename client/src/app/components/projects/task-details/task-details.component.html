@@ -1,0 +1,42 @@
+<app-navbar></app-navbar>
+
+<div class="task-page">
+	<ng-container *ngIf="!editing()">
+		<div class="title-row">
+			<div class="task-title-pill">
+				<span class="task-title-text">{{ task()?.title }}</span>
+				<span class="task-priority-pill">{{ task()?.priority || 'Low' }}</span>
+			</div>
+			<div class="title-actions">
+				<button class="icon-btn task-edit-outside" (click)="startEdit()" aria-label="Edit">✎</button>
+				<button class="icon-btn task-delete-outside" (click)="onDeleteClick()" aria-label="Delete">🗑</button>
+			</div>
+		</div>
+
+		<div class="task-card">
+			<div class="task-meta">
+				<div class="project-pill">{{ task()?.project?.project_title }}</div>
+				<div class="meta-item">📅 {{ task()?.deadline | date }}</div>
+				<div class="meta-item">👤 {{ task()?.assigned_to?.first_name }}</div>
+				<div class="status-select">
+					<select [formControl]="stateControl" (change)="changeState($any($event.target).value)">
+						<option>Not Started</option>
+						<option>In Progress</option>
+						<option>Completed</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="section">
+				<div class="section-title">Task Description</div>
+				<div class="section-body">{{ task()?.description }}</div>
+			</div>
+		</div>
+	</ng-container>
+
+	<ng-container *ngIf="editing()">
+			<div class="task-card">
+				<app-task-edit [project]="project()" [task]="task()" (update)="onUpdate($event)" (cancel)="onCancelEdit()"></app-task-edit>
+			</div>
+	</ng-container>
+</div>

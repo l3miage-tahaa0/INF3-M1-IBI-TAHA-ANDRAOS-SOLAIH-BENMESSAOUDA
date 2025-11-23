@@ -43,4 +43,7 @@ export class Login {
       this.errorMessage = 'Please fill in all required fields correctly.';
     }
   }
+  navigateToSignup(): void {
+    this.router.navigate(['/signup']);
+  }
 }
