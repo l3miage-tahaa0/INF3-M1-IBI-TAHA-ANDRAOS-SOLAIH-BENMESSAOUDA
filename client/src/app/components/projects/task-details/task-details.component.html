@@ -5,7 +5,7 @@
 		<div class="title-row">
 			<div class="task-title-pill">
 				<span class="task-title-text">{{ task()?.title }}</span>
-				<span class="task-priority-pill">{{ task()?.priority || 'Low' }}</span>
+				<span class="task-priority-pill {{task()?.priority}}">{{ task()?.priority || 'Low' }}</span>
 			</div>
 			<div class="title-actions">
 				<button class="icon-btn task-edit-outside" (click)="startEdit()" aria-label="Edit">✎</button>
@@ -15,13 +15,14 @@
 
 		<div class="task-card">
 			<div class="task-meta">
-				<div class="project-pill">{{ task()?.project?.project_title }}</div>
+				<div class="project-pill" (click)="back()">{{ task()?.project?.project_title }}</div>
 				<div class="meta-item">📅 {{ task()?.deadline | date }}</div>
 				<div class="meta-item">👤 {{ task()?.assigned_to?.first_name }}</div>
 				<div class="status-select">
-					<select [formControl]="stateControl" (change)="changeState($any($event.target).value)">
+					<select [formControl]="stateControl" [ngClass]="statusClass" (change)="changeState($any($event.target).value)">
 						<option>Not Started</option>
 						<option>In Progress</option>
+						<option>Submit for Validation</option>
 						<option>Completed</option>
 					</select>
 				</div>
@@ -35,8 +36,6 @@
 	</ng-container>
 
 	<ng-container *ngIf="editing()">
-			<div class="task-card">
-				<app-task-edit [project]="project()" [task]="task()" (update)="onUpdate($event)" (cancel)="onCancelEdit()"></app-task-edit>
-			</div>
+		<app-task-edit [project]="project()" [task]="task()" (update)="onUpdate($event)" (cancel)="onCancelEdit()"></app-task-edit>
 	</ng-container>
 </div>

@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject, timer } from 'rxjs';
 import { tap, catchError, map, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { Project } from '../interfaces/project.interface';
 interface AuthResponse {
   access_token: string;
   refresh_token: string;
@@ -45,6 +46,7 @@ export class Auth {
   private clearTokens(): void {
     localStorage.removeItem(this.accessTokenKey);
     localStorage.removeItem(this.refreshTokenKey);
+    localStorage.removeItem("userEmail");
     this.isAuthenticatedSubject.next(false);
   }
 
@@ -58,6 +60,8 @@ export class Auth {
       tap(response => {
         this.setTokens(response);
         this.scheduleTokenRefresh();
+        //TODO: Decrypt token to get user email instead
+        localStorage.setItem("userEmail", credentials.email);
         this.router.navigate(['/projects']);
       }),
       catchError(error => {

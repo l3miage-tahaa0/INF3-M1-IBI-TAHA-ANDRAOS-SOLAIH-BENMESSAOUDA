@@ -12,7 +12,9 @@
 .task-title-pill { display:flex; align-items:center; gap:8px; flex: 0 0 auto }
 .task-title-text { color:white; font-weight:700 }
 .task-priority-pill { background:#ff8888; color:white; padding:6px 12px; border-radius:12px; font-weight:700 }
-
+.task-priority-pill.High { background:#ffb3b3; color:#a43a3a }
+.task-priority-pill.Medium { background:#ffd9a8; color:#a36a2b }
+.task-priority-pill.Low { background:#dff7d9; color:#2f7a3a }
 .title-actions { display:flex; gap:8px; margin-left:6px }
 .icon-btn { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:none; cursor:pointer; font-size:16px }
 .icon-btn:focus { outline:2px solid rgba(43,133,232,0.2) }
@@ -25,6 +27,12 @@
 .meta-item { color:#2b85e8; font-weight:700 }
 .status-select { margin-left:auto }
 .status-select select { background:#ff9aa6; color:white; padding:8px 14px; border-radius:12px; border:none; font-weight:700 }
+
+/* Status color variants */
+.status-not-started { background:#b0bec5 !important; color:white !important }
+.status-in-progress { background:#ffd54f !important; color:#5a3b00 !important }
+.status-submit-validation { background:#ff9aa6 !important; color:white !important }
+.status-completed { background:#b8f3c7 !important; color:#0b5a17 !important }
 
 .section { margin-top:18px }
 .section-title { background:#bfe0ff; padding:12px; border-radius:10px 10px 0 0; color:#2b85e8; font-weight:700 }

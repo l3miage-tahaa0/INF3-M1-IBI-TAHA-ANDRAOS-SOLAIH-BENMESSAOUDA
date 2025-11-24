@@ -18,6 +18,9 @@ export class ProjectSettings implements OnInit{
   private router = inject(Router);
   protected project = signal<Project|undefined>(undefined);
   
+  protected addMemberError = signal<string>('');
+  protected addManagerError = signal<string>('');
+
   open = { details: false, members: false, managers: false };
   memberEmailControl = new FormControl('');
   managerEmailControl = new FormControl('');
@@ -37,6 +40,8 @@ export class ProjectSettings implements OnInit{
   }
   private refreshProject(projectId: string) {
     this.projectService.getProjectById(projectId).subscribe(p => this.project.set(p));
+    this.addMemberError.set('');
+    this.addManagerError.set('');
   }
   addMemberByEmail() {
     const projectId = this.project()?._id;
@@ -44,7 +49,9 @@ export class ProjectSettings implements OnInit{
     if (!projectId || !email) return;
     this.projectService.addMemberToProject(projectId, email).subscribe({
       next: () => { this.memberEmailControl.setValue(''); this.refreshProject(projectId); },
-      error: (err) => console.error('add member error', err)
+      error: (err) => err.status === 404
+        ? this.addMemberError.set('No user found with this email.')
+        : this.addMemberError.set('User already in project.')
     });
   }
   removeMember(memberEmail: string) {
@@ -61,7 +68,9 @@ export class ProjectSettings implements OnInit{
     if (!projectId || !email) return;
     this.projectService.promoteMemberToManager(projectId, email).subscribe({
       next: () => { this.managerEmailControl.setValue(''); this.refreshProject(projectId); },
-      error: (err) => console.error('add manager error', err)
+      error: (err) => err.status === 404
+        ? this.addManagerError.set('No user found with this email.')
+        : this.addManagerError.set('User already is a manager in project.')
     });
   }
   removeManager(managerEmail: string) {

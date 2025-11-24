@@ -269,7 +269,7 @@ async def update_task(
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not authorized to change this task's state.")
         
         # B. Check permissions for all other manager-only fields
-        elif field in ["title", "description", "priority", "assigned_to"]:
+        elif field in ["title", "description", "priority", "assigned_to", "deadline"]:
             if not is_manager:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Only a project manager can update the task's {field}.")
             # Convert Pydantic model to dict for MongoDB
