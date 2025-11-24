@@ -22,13 +22,22 @@ export class TaskEditComponent implements OnChanges {
 
   form: FormGroup;
 
+  // minDate for the date input (today, formatted as yyyy-MM-dd)
+  get minDate(): string {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       priority: ['Medium', Validators.required],
       deadline: [''],
       description: ['', Validators.maxLength(2000)],
-      assignee: [null]
+      assigned_to: [null]
     });
   }
 
@@ -49,13 +58,13 @@ export class TaskEditComponent implements OnChanges {
         priority: this.task.priority ?? 'Medium',
         deadline: deadlineStr,
         description: this.task.description ?? '',
-        assignee: this.task.assigned_to ?? null
+        assigned_to: this.task.assigned_to ?? null
       });
     }
   }
 
-  onAssigneeSelected(user: UserExtendedReference | null) {
-    this.form.get('assignee')?.setValue(user ?? null);
+  onassigned_toSelected(user: UserExtendedReference | null) {
+    this.form.get('assigned_to')?.setValue(user ?? null);
   }
 
   save() {
@@ -71,7 +80,7 @@ export class TaskEditComponent implements OnChanges {
       // convert date string back to a Date (or null)
       deadline: rawDeadline ? new Date(rawDeadline) : (null as any),
       description: this.form.value.description,
-      assigned_to: this.form.value.assignee || null
+      assigned_to: this.form.value.assigned_to || null
     };
     this.update.emit(payload);
   }

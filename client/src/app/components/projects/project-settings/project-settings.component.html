@@ -4,9 +4,6 @@
 	<div class="header-row">
 		<div></div>
 		<div class="project-title-pill">{{ project()?.title }}</div>
-		<div class="header-actions">
-			<button class="delete-project" (click)="deleteProject()">Delete Project</button>
-		</div>
 	</div>
 
 	<div class="accordion">
@@ -24,6 +21,7 @@
 					<div class="field">{{ project()?.description }}</div>
 
 					<div class="created">Created On {{ project()?.created_at | date }}</div>
+					<div class="created"><button class="delete-project" (click)="deleteProject()">Delete Project</button></div>		
 				</div>
 			</div>
 		</div>
@@ -39,6 +37,7 @@
 						<input type="email" placeholder="member@example.com" [formControl]="memberEmailControl" />
 						<button class="add-member" (click)="addMemberByEmail()"><span>+</span> Add</button>
 					</div>
+					<div class="error-message" *ngIf="addMemberError()">{{ addMemberError() }}</div>
                     <div class="member-list">
                         <div class="member-item" *ngFor="let m of project()?.members">
                             <span class="member-avatar">👤</span>
@@ -61,6 +60,7 @@
 						<input type="email" placeholder="manager@example.com" [formControl]="managerEmailControl" />
 						<button class="add-member" (click)="addManagerByEmail()"><span>+</span> Add</button>
 					</div>
+					<div class="error-message" *ngIf="addManagerError()">{{ addManagerError() }}</div>
                     <div class="member-list">
                         <div class="member-item" *ngFor="let m of project()?.managers">
                             <span class="member-avatar">👤</span>

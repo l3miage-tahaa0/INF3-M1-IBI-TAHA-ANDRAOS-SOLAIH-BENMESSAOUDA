@@ -7,7 +7,7 @@
 	background: white;
 	padding: 12px 28px;
 	border-radius: 28px;
-	font-size: 32px;
+	font-size: 39px;
 	color: #2b85e8;
 	font-weight: 700;
 	text-align: center;
@@ -17,20 +17,21 @@
 .tasks-card { background: white; border-radius:20px; margin: 18px auto; max-width:1200px; box-shadow: 0 6px 18px rgba(2,6,23,0.04); overflow:hidden }
 .tasks-header { background:#bfe0ff; padding:26px 20px; border-radius:18px 18px 0 0; display:flex; align-items:center; justify-content:center; position:relative }
 .tasks-header h3 { margin:0; font-size:36px; color:#2b85e8 }
-.tasks-actions { position:absolute; right:16px; top:12px; display:flex; gap:12px }
-.add-btn { width:44px; height:44px; border-radius:10px; background:#2b85e8; color:white; border:none; font-size:28px }
-.filter-btn { width:44px; height:44px; border-radius:10px; background:transparent; border:none; font-size:24px; color:#2b85e8 }
+.tasks-actions {display:flex; gap:12px;}
+.add-btn { background:transparent; border:none; color:#2b85e8; }
+.filter-btn {background:transparent; border:none; color:#2b85e8 }
 
 .tasks-list { padding: 18px }
 .task-item { background: #f6fbff; border-radius:12px; border:2px solid #2b85e8; padding:12px 16px; margin-bottom:12px; display:flex; align-items:center; gap:12px }
 .priority { display:inline-block; padding:6px 12px; border-radius:12px; font-weight:700 }
-.priority.high { background:#ffb3b3; color:#a43a3a }
-.priority.medium { background:#ffd9a8; color:#a36a2b }
-.priority.low { background:#dff7d9; color:#2f7a3a }
+.priority.High { background:#ffb3b3; color:#a43a3a }
+.priority.Medium { background:#ffd9a8; color:#a36a2b }
+.priority.Low { background:#dff7d9; color:#2f7a3a }
 .task-title { flex:1; color:#2b85e8; font-weight:700 }
 .task-right { display:flex; align-items:center; gap:10px }
 .member-icon { width:22px; height:22px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="%232b85e8"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>'); background-size:contain; background-repeat:no-repeat }
 .assignee { color:#2b85e8; font-weight:600 }
+.no-tasks { text-align:center; color:#2b85e8; margin-top:40px; font-size: 32px; }
 
 @media (max-width: 900px) {
 	.project-details-page { padding: 12px }

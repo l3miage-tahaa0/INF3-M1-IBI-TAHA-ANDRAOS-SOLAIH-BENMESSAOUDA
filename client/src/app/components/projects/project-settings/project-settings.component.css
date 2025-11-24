@@ -44,7 +44,7 @@
 .remove-btn { position:absolute; right:12px; top:10px; background:transparent; border:none; color:#2b85e8; font-size:20px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px }
 .member-avatar { width:36px; height:36px; background:#d7f0ff; border-radius:50%; display:inline-flex; align-items:center; justify-content:center }
 .member-name { color:#2b85e8; font-weight:700 }
-
+.error-message { color: #ff4d4f; font-size: 14px; margin-top: 8px; }
 @media (max-width:900px) {
 	.settings-page { padding:12px }
 	.project-title-pill { font-size:22px }

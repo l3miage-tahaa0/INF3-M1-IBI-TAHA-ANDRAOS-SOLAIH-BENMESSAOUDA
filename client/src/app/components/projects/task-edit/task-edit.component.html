@@ -27,7 +27,7 @@
 					</div>
 				</div>
 				<div class="input-col">
-					<div class="input-group"><input type="date" formControlName="deadline" placeholder="Deadline" /></div>
+					<div class="input-group"><input type="date" formControlName="deadline" [min]="minDate" placeholder="Deadline" /></div>
 				</div>
 			</div>
 
@@ -37,8 +37,10 @@
 			</div>
 
 			<div class="input-group small-gap">
-				<label style="font-weight:700; color:#2b85e8; margin-bottom:6px; display:block">Assignee</label>
-				<app-team-dropdown [project]="project" (selection)="onAssigneeSelected($event)"></app-team-dropdown>
+				<label style="font-weight:700; color:#2b85e8; margin-bottom:6px; display:block">
+					@if(task?.assigned_to){ Assigned to: {{ task?.assigned_to?.first_name }} {{ task?.assigned_to?.last_name }} } @else{ Assigned to: None}
+				</label>
+				<app-team-dropdown [project]="project" (selection)="onassigned_toSelected($event)"></app-team-dropdown>
 			</div>
 
 			<div style="text-align:center">

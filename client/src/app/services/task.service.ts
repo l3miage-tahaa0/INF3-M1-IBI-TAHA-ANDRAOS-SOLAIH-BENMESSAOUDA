@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Task } from '../interfaces/task.interface';
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class TaskService {
-  private apiUrl = 'http://localhost:8000/projects';
+  private apiUrl = environment.apiUrl + 'projects';
   private http = inject(HttpClient);
   getTasksByProjectId(projectId: string) {
     // Implementation for fetching tasks by project ID from the backend API

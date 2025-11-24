@@ -8,6 +8,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 import { Project } from '../../../interfaces/project.interface';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { UserExtendedReference } from '../../../interfaces/user.interface';
 
 @Component({
   selector: 'app-task-details',
@@ -25,13 +26,31 @@ export class TaskDetailsComponent implements OnInit {
   protected editing = signal(false);
   stateControl = new FormControl('');
 
+  // CSS class based on current task state
+  get statusClass(): string {
+    const val = this.stateControl?.value || this.task()?.state || 'Not Started';
+    switch (val) {
+      case 'In Progress': return 'status-in-progress';
+      case 'Submit for Validation': return 'status-submit-validation';
+      case 'Completed': return 'status-completed';
+      case 'Not Started':
+      default:
+        return 'status-not-started';
+    }
+  }
+
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const projectId = params['id'];
       const taskId = params['taskId'];
       if (projectId && taskId) {
         this.projectService.getProjectById(projectId).subscribe({
-          next: (p) => this.project.set(p),
+          next: (p) => {
+            this.project.set(p);
+            if(!this.isProjectManager()){
+              this.stateControl.disable();
+            }
+          },
           error: (err) => console.error('Failed to load project', err)
         });
         this.taskService.getTaskById(projectId, taskId).subscribe({
@@ -42,6 +61,7 @@ export class TaskDetailsComponent implements OnInit {
         });
       }
     });
+    
   }
 
   changeState(newState: string) {
@@ -102,5 +122,11 @@ export class TaskDetailsComponent implements OnInit {
     if (projectId && taskId) {
       this.router.navigate(['/projects', projectId, 'tasks', taskId, 'edit']);
     }
+  }
+  isProjectManager(): boolean {
+    const userEmail = localStorage.getItem("userEmail");
+    console.log("User Email:", userEmail);
+    const projectManagers: UserExtendedReference[] = this.project()?.managers || [];
+    return projectManagers.some(manager => manager.email === userEmail);
   }
 }

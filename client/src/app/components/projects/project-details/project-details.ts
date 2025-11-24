@@ -89,4 +89,9 @@ export class ProjectDetails implements OnInit{
     });
     }
   }
+  isProjectManager(): boolean {
+    const userEmail = localStorage.getItem("userEmail");
+    const projectManagers: UserExtendedReference[] = this.project()?.managers || [];
+    return projectManagers.some(manager => manager.email === userEmail);
+  }
 }
