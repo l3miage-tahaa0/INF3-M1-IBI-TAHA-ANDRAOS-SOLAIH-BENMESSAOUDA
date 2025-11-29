@@ -20,6 +20,7 @@ async def get_projects(current_user: dict = Depends(get_current_user)):
             { "managers._id": current_user["_id"] }
         ]
     }).to_list()
+
 @project_router.get("/{id}", response_model=Project)
 async def get_project(id: str, current_user: dict = Depends(get_current_user)):
     project = await get_database()["projects"].find_one({
@@ -32,6 +33,161 @@ async def get_project(id: str, current_user: dict = Depends(get_current_user)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+# Calculate the total number of tasks per project
+@project_router.get("/{id}/total-tasks")
+async def get_total_tasks_per_project(id:str, current_user: dict = Depends(get_current_user)):
+
+    """
+    Calculate the total number of tasks for each project
+    """
+    project = await get_database()["projects"].find_one({
+        "_id": ObjectId(id),
+        "$or": [
+            { "members._id": current_user["_id"] },
+            { "managers._id": current_user["_id"] }
+        ]
+    })
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    pipeline = [
+        {"$match": {"project._id": ObjectId(id)}},
+        {"$count": "total_tasks"}
+    ]
+    return await get_database()["tasks"].aggregate(pipeline).to_list(None)
+#  Count tasks by status and priority per project
+@project_router.get("/{id}/tasks-breakdown")
+async def get_tasks_by_status_priority(id:str, current_user: dict = Depends(get_current_user)):
+
+    """
+    Analyze tasks by their status and priority within each project
+    """
+    project = await get_database()["projects"].find_one({
+        "_id": ObjectId(id),
+        "$or": [
+            { "members._id": current_user["_id"] },
+            { "managers._id": current_user["_id"] }
+        ]
+    })
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    pipeline = [
+        {"$match": {"project._id": ObjectId(id)}},
+        {   
+            "$group": {
+                "_id": {
+                    "status": "$state",
+                    "priority": "$priority"
+                },
+                "number_task": {"$sum": 1}
+            }
+        }
+    ]
+    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
+@project_router.get("/{id}/tasks-productivity")
+async def get_top_productive_users(id:str,limit:int = 5,  current_user: dict = Depends(get_current_user)):
+    
+    """
+    Identify the top X most productive users based on completed tasks
+    """
+    project = await get_database()["projects"].find_one({
+        "_id": ObjectId(id),
+        "$or": [
+            { "members._id": current_user["_id"] },
+            { "managers._id": current_user["_id"] }
+        ]
+    })
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    pipeline = [
+        {
+            "$match": {
+                "project._id": ObjectId(id),
+                "state": "Completed",
+                }
+        },
+        {
+            "$group": {
+                "_id": { "$toString": "$assigned_to._id" }, 
+                "tasks_completed": {"$sum": 1},
+                "member": { 
+                    "$addToSet":{
+                        "first_name": "$assigned_to.first_name"
+                    }
+                }
+                
+            }
+        },
+        {"$unwind": "$member"},
+        {
+            "$project":{
+                "_id":0,
+                "first_name":"$member.first_name",
+                "tasks_completed": 1
+            }
+        },
+        {
+            "$sort": {"tasks_completed": -1}
+        },
+        
+        {"$limit": limit}
+    ]
+    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
+
+@project_router.get("/{id}/tasks-state-distribution")
+async def get_task_state_distribution(id:str,  current_user: dict = Depends(get_current_user)):
+    
+    """
+    Show task state distribution for a project 
+    """
+    project = await get_database()["projects"].find_one({
+        "_id": ObjectId(id),
+        "$or": [
+            { "members._id": current_user["_id"] },
+            { "managers._id": current_user["_id"] }
+        ]
+    })
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    pipeline = [
+        {"$match": {"project._id": ObjectId(id)}},
+
+        {
+            "$group": {
+                "_id": "$state",
+                "nb_of_tasks": {"$sum": 1}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_task_count": {"$sum": "$nb_of_tasks"},
+                "states": {
+                    "$push": {
+                        "state": "$_id",
+                        "nb_of_tasks": "$nb_of_tasks"
+                    }
+                }
+            }
+        },
+        {"$unwind": "$states"},
+        {
+            "$project": {
+                "_id": 0,
+                "state": "$states.state",
+                "nb_of_tasks": "$states.nb_of_tasks",
+                "percentage": {
+                    "$multiply": [
+                        { "$divide": ["$states.nb_of_tasks", "$total_task_count"] },
+                        100
+                    ]
+                }
+            }
+        }
+    ]
+    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
 
 @project_router.post("/", response_model=CreateProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(project: CreateProjectRequest, current_user: dict = Depends(get_current_user)):
@@ -342,115 +498,3 @@ async def delete_task(project_id: str, task_id: str, current_user: dict = Depend
     await get_database()["tasks"].delete_one({"_id": task["_id"]})
     print(f"Deleted task '{task['title']}' from project '{project['title']}'")
     return
-
-# Partie Aggregations S
-
-# Calculate the total number of tasks per project
-@project_router.get("/stats/projects/total-tasks")
-async def get_total_tasks_per_project(current_user: dict = Depends(get_current_user)):
-
-    """
-    Calculate the total number of tasks for each project
-    - First : Groups all tasks by project ID
-    - Second : Uses $sum to count tasks in each group
-    """
-
-    pipeline = [
-        {
-            "$group": {
-                "_id": "$project._id", 
-                "total_tasks": {"$sum": 1} 
-            }
-        }
-    ]
-    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
-
-
-#  Count tasks by status and priority per project
-@project_router.get("/stats/projects/tasks-breakdown")
-async def get_tasks_by_status_priority(current_user: dict = Depends(get_current_user)):
-
-    """
-    Analyze tasks by their status and priority within each project
-    - First : Groups tasks by project ID, status, and priority (a composite key) for grouping
-    - Second : Counts the number of tasks in each subgroup using $sum
-    - Third : Sorts the results by project ID 
-    """
-    pipeline = [
-        {
-            "$group": {
-                "_id": {
-                    "projet_id": "$project._id",
-                    "status": "$state",
-                    "priority": "$priority"
-                },
-                "number_task": {"$sum": 1}
-            }
-        },
-
-        {"$sort": {"_id.projet_id": 1}}
-    ]
-    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
-
-
-# Find the top 5 most productive users (completed tasks)
-@project_router.get("/stats/users/top-productive")
-async def get_top_productive_users(current_user: dict = Depends(get_current_user)):
-    
-    """
-    Identify the top 5 most productive users based on completed tasks
-    - First : Filters tasks to include only those with "COMPLETED" state
-    - Second : Groups tasks by assigned user ID, capturing the user's first and last names
-    - Third : Counts completed tasks per user using $sum
-    - Fourth : Sorts users by completed task count in descending order
-    - Fifth : Limits the output to the top 5 users
-    """
-    pipeline = [
-        {
-            "$match": {"state": "COMPLETED"}
-        },
-        {
-            "$group": {
-                "_id": "$assigned_to._id", 
-                "first_name": {"$first": "$assigned_to.first_name"},
-                "last_name": {"$first": "$assigned_to.last_name"},
-                "taches_completees": {"$sum": 1}
-            }
-        },
-        {
-            "$sort": {"taches_completees": -1}
-        },
-        
-        {"$limit": 5}
-    ]
-    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
-
-# List of active memembers unique per project
-@project_router.get("/stats/projects/active-team-composition")
-async def get_active_team_composition(current_user: dict = Depends(get_current_user)):
-
-    """
-    Get a unique list of active members for each project
-    - First : Groups tasks by project ID
-    - Second : Uses $addToSet to collect unique assigned users for each project
-    - Third : Uses $size to count how many disnct active members per project
-    """
-    pipeline = [
-        {
-            "$group": {
-                "_id": "$project._id", 
-                "actif_members_unique": {"$addToSet": "$assigned_to.first_name"} 
-            }
-        },
-        {
-            "$project": {
-                "_id": 1,
-                "actif_members_unique": 1,
-                "size_actif_members_unique": {"$size": "$actif_members_unique"}
-            }
-        },
-        { "$sort": {"size_actif_members_unique": -1 } }
-
-    ]
-    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
-
