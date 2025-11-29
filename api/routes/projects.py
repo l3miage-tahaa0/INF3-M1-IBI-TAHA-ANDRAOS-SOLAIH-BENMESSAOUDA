@@ -341,4 +341,112 @@ async def delete_task(project_id: str, task_id: str, current_user: dict = Depend
         raise HTTPException(status_code=404, detail="Task not found")
     await get_database()["tasks"].delete_one({"_id": task["_id"]})
     print(f"Deleted task '{task['title']}' from project '{project['title']}'")
-    return
+    return  
+
+
+# aggregations Iman 
+# Tasks Near Deadline
+
+@project_router.get("/stats/tasks/near-deadline")
+async def get_tasks_near_deadline(current_user: dict = Depends(get_current_user)):
+    """
+    Get tasks whose deadline is within the next 3 days and not completed
+    - First : Filters tasks with state different from "COMPLETED"
+    - Second : Selects tasks whose deadline is within now and +3 days
+    - Third : Sorts by nearest deadline first
+    """
+
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    in_three_days = now + timedelta(days=3)
+
+    pipeline = [
+        {
+            "$match": {
+                "state": { "$ne": "COMPLETED" },
+                "deadline": { "$gte": now, "$lte": in_three_days }
+            }
+        },
+        {
+            "$sort": { "deadline": 1 }
+        }
+    ]
+
+    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
+
+
+
+
+# Activity Trend : Number of tasks created per day
+@project_router.get("/stats/tasks/activity-trend")
+async def get_tasks_activity_trend(current_user: dict = Depends(get_current_user)):
+    """
+    Count tasks created per day
+    - First : Converts 'created_at' into YYYY-MM-DD format using $dateToString
+    - Second : Groups tasks by creation date
+    - Third : Counts tasks per day using $sum
+    - Fourth : Sorts chronologically
+    """
+
+    pipeline = [
+        {
+            "$group": {
+                "_id": {
+                    "date": {
+                        "$dateToString": { "format": "%Y-%m-%d", "date": "$created_at" }
+                    }
+                },
+                "tasks_created": { "$sum": 1 }
+            }
+        },
+        {
+            "$sort": { "_id.date": 1 }
+        }
+    ]
+
+    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
+
+
+
+# Project Progress Overview (percentage of completed tasks)
+@project_router.get("/stats/projects/progress-overview")
+async def get_project_progress_overview(current_user: dict = Depends(get_current_user)):
+    """
+    Calculate completion percentage for each project
+    - First : Groups tasks by project ID
+    - Second : Counts completed tasks using a conditional $sum
+    - Third : Counts all tasks per project
+    - Fourth : Computes completion percentage
+    """
+
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$project._id",
+                "completed_tasks": {
+                    "$sum": {
+                        "$cond": [{ "$eq": ["$state", "COMPLETED"] }, 1, 0]
+                    }
+                },
+                "total_tasks": { "$sum": 1 }
+            }
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "completed_tasks": 1,
+                "total_tasks": 1,
+                "completion_percentage": {
+                    "$multiply": [
+                        { "$divide": ["$completed_tasks", "$total_tasks"] },
+                        100
+                    ]
+                }
+            }
+        },
+        {
+            "$sort": { "completion_percentage": -1 }
+        }
+    ]
+
+    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
