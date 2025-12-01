@@ -14,5 +14,4 @@ export class NavbarComponent {
 
   goProfile() { this.router.navigate(['/profile']); }
   goProjects() { this.router.navigate(['/projects']); }
-  goTasks() { this.router.navigate(['/tasks']); }
 }

@@ -20,10 +20,10 @@
 				<div class="meta-item">👤 {{ task()?.assigned_to?.first_name }}</div>
 				<div class="status-select">
 					<select [formControl]="stateControl" [ngClass]="statusClass" (change)="changeState($any($event.target).value)">
-						<option>Not Started</option>
-						<option>In Progress</option>
-						<option>Submit for Validation</option>
-						<option>Completed</option>
+						<option [disabled]="task()?.state == 'Not Started' || (!isProjectManager() && task()?.state == 'Completed')">Not Started</option>
+						<option [disabled]="task()?.state == 'In Progress' || (!isProjectManager() && task()?.state == 'Completed')">In Progress</option>
+						<option [disabled]="task()?.state == 'Submitted for Validation' || (!isProjectManager() && task()?.state == 'Completed')">Submit for Validation</option>
+						<option [disabled]="!isProjectManager() || task()?.state == 'Completed'">Completed</option>
 					</select>
 				</div>
 			</div>

@@ -2,43 +2,40 @@ from pydantic import BaseModel, Field, EmailStr, GetCoreSchemaHandler
 from datetime import datetime
 from typing import Optional, List
 from bson import ObjectId
-from pydantic_core import CoreSchema, core_schema
-
-# This is the custom Pydantic type for MongoDB's ObjectId
+from pydantic_core import core_schema
+from pydantic.json_schema import JsonSchemaValue
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        """
-        This method defines how Pydantic should handle this custom type.
-        It allows validation from a string and serialization to a string.
-        """
-        # Validator: Allows Pydantic to accept a string and convert it to an ObjectId
-        def validate_from_str(value: str) -> ObjectId:
+    def __get_pydantic_core_schema__(cls, source, handler: GetCoreSchemaHandler):
+        # Accept string → convert to ObjectId
+        def validate(value):
+            if isinstance(value, ObjectId):
+                return value
             if not ObjectId.is_valid(value):
                 raise ValueError("Invalid ObjectId")
             return ObjectId(value)
 
-        # Schema for validation from a Python ObjectId instance
-        from_python_schema = core_schema.is_instance_schema(ObjectId)
-
-        # Schema for validation from a string
-        from_str_schema = core_schema.chain_schema(
+        return core_schema.union_schema(
             [
-                core_schema.str_schema(),
-                core_schema.no_info_plain_validator_function(validate_from_str),
-            ]
-        )
-
-        # The final schema allows validation from either a string or an ObjectId instance
-        return core_schema.json_or_python_schema(
-            json_schema=from_str_schema,
-            python_schema=core_schema.union_schema([from_python_schema, from_str_schema]),
+                core_schema.is_instance_schema(ObjectId),
+                core_schema.chain_schema(
+                    [
+                        core_schema.str_schema(),
+                        # VALIDATOR MUST BE IN PYTHON BRANCH ONLY
+                        core_schema.general_plain_validator_function(validate),
+                    ]
+                ),
+            ],
             serialization=core_schema.plain_serializer_function_ser_schema(
-                lambda instance: str(instance)
+                lambda v: str(v)
             ),
         )
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        # JSON schema MUST NOT include validator functions
+        return {"type": "string", "example": "60ad8f02c45e88b6f8e4b6e2"}
+
 
 # User/AUTH models
 class CreateUserRequest(BaseModel):
@@ -69,10 +66,14 @@ class LoginUserRequest(BaseModel):
 
 class UserDataResponse(BaseModel):
     email: EmailStr
+    first_name: str
+    last_name: str
     class Config:
         schema_extra = {
             "example": {
-                "email": "abdul@example.com"
+                "email": "abdul@example.com",
+                "first_name": "Abdul",
+                "last_name": "Abdul"
             }
         }
 
@@ -125,6 +126,7 @@ class TaskUpdate(BaseModel):
     priority: Optional[str] = Field(None) # Could be an Enum: "low", "medium", "high"
     state: Optional[str] = Field(None)
     assigned_to: Optional[UserExtendedReference] = Field(None)
+    deadline: Optional[datetime] = Field(None)
 
     class Config:
         # Pydantic v2 feature to handle nested models properly

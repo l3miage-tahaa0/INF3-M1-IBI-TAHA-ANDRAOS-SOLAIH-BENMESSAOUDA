@@ -24,6 +24,8 @@ export class TaskDetailsComponent implements OnInit {
   protected project = signal<Project | undefined>(undefined);
   protected task = signal<Task | undefined>(undefined);
   protected editing = signal(false);
+  protected isProjectManager = signal(false);
+  protected isTaskAssignee = signal(false);
   stateControl = new FormControl('');
 
   // CSS class based on current task state
@@ -38,7 +40,7 @@ export class TaskDetailsComponent implements OnInit {
         return 'status-not-started';
     }
   }
-
+  //TODO: Decrypt JWT token to get user role instead of checking email
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const projectId = params['id'];
@@ -47,14 +49,20 @@ export class TaskDetailsComponent implements OnInit {
         this.projectService.getProjectById(projectId).subscribe({
           next: (p) => {
             this.project.set(p);
-            if(!this.isProjectManager()){
-              this.stateControl.disable();
-            }
+            this.isProjectManager.set(p.managers?.some(manager => manager.email === localStorage.getItem("userEmail")) || false);
           },
           error: (err) => console.error('Failed to load project', err)
         });
         this.taskService.getTaskById(projectId, taskId).subscribe({
-          next: (t) => { this.task.set(t); this.stateControl.setValue(t.state || 'Not Started'); },
+          next: (t) => {
+            this.task.set(t);
+            console.log('Loaded task', t);
+            this.stateControl.setValue(t.state || 'Not Started');
+            this.isTaskAssignee.set(t.assigned_to?.email === localStorage.getItem("userEmail"));
+            if(!this.isProjectManager() && !this.isTaskAssignee()) {
+              this.stateControl.disable();
+            }
+          },
           error: (err) => {
             console.error('Failed to load task', err);
           }
@@ -122,11 +130,5 @@ export class TaskDetailsComponent implements OnInit {
     if (projectId && taskId) {
       this.router.navigate(['/projects', projectId, 'tasks', taskId, 'edit']);
     }
-  }
-  isProjectManager(): boolean {
-    const userEmail = localStorage.getItem("userEmail");
-    console.log("User Email:", userEmail);
-    const projectManagers: UserExtendedReference[] = this.project()?.managers || [];
-    return projectManagers.some(manager => manager.email === userEmail);
   }
 }

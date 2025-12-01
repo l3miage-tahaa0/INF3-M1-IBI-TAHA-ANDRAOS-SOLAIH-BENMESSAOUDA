@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Auth } from '../../services/auth';
+import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from '../../services/project.service';

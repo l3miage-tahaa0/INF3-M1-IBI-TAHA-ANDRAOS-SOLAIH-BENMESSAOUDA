@@ -72,13 +72,10 @@ export class TaskEditComponent implements OnChanges {
       this.form.markAllAsTouched();
       return;
     }
-    // build payload matching Task interface keys
-    const rawDeadline = this.form.value.deadline;
     const payload: Partial<Task> = {
       title: this.form.value.title,
       priority: this.form.value.priority,
-      // convert date string back to a Date (or null)
-      deadline: rawDeadline ? new Date(rawDeadline) : (null as any),
+      deadline: this.form.value.deadline,
       description: this.form.value.description,
       assigned_to: this.form.value.assigned_to || null
     };

@@ -9,7 +9,6 @@ export class TaskService {
   private apiUrl = environment.apiUrl + 'projects';
   private http = inject(HttpClient);
   getTasksByProjectId(projectId: string) {
-    // Implementation for fetching tasks by project ID from the backend API
     return this.http.get<Task[]>(`${this.apiUrl}/${projectId}/tasks`);
   }
   createTask(projectId: string, task: Partial<Task>) {
