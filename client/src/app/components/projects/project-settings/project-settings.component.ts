@@ -1,26 +1,37 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, inject, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { ProjectService } from '../../../services/project.service';
 import { Project } from '../../../interfaces/project.interface';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 @Component({
   selector: 'app-project-settings',
-  imports: [CommonModule, ReactiveFormsModule, NavbarComponent],
+  imports: [CommonModule, ReactiveFormsModule, NavbarComponent, NgxChartsModule, CommonModule],
   templateUrl: './project-settings.component.html',
   styleUrls: ['./project-settings.component.css'],
 })
-export class ProjectSettings implements OnInit{
+export class ProjectSettings implements OnInit, OnChanges, AfterViewInit{
   private projectService = inject(ProjectService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   protected project = signal<Project|undefined>(undefined);
   
+  pieChartData: { name: string; value: number }[] = [];
+  pieChartView: [number, number] = [700, 400];
+  pieChartLegend = true;
+  pieChartLabels = true;
+  pieChartLegendPosition: 'right' | 'below' = 'below';
+
   protected addMemberError = signal<string>('');
   protected addManagerError = signal<string>('');
-
+  protected topProductiveMembers = signal<{ first_name: string; tasks_completed: number }[]>([]);
+  protected taskCount = signal<number>(0);
+  protected taskPriorityStateDistribution = signal<{_id: {state: string, priority: string}, number_task: number}[]>([]);
+  protected tasksStateDistribution = signal<{state: string, nb_of_tasks: number, percentage: number}[]>([]);
+  
   open = { details: false, members: false, managers: false };
   memberEmailControl = new FormControl('');
   managerEmailControl = new FormControl('');
@@ -32,9 +43,39 @@ export class ProjectSettings implements OnInit{
         this.projectService.getProjectById(projectId).subscribe(project => {
           this.project.set(project);
         });
+        this.projectService.getUserProductivity(projectId).subscribe(members => {
+          this.topProductiveMembers.set(members);
+        });
+        this.projectService.getTaskCountByProjectId(projectId).subscribe(count => {
+          this.taskCount.set(count[0].total_tasks);
+        });
+        this.projectService.getTasksByStatePriority(projectId).subscribe(data => {
+          this.taskPriorityStateDistribution.set(data);
+        });
+        this.projectService.getTaskStateDistribution(projectId).subscribe(data => {
+          this.tasksStateDistribution.set(data);
+          this.updateStateChart();
+        });
       }
     });
   }
+
+    ngAfterViewInit(): void {
+    this.updateStateChart();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['project']) {
+      this.updateStateChart();
+    }
+  }
+
+  private updateStateChart(): void {
+    const data = this.tasksStateDistribution() ?? [];
+    this.pieChartData = data.map(d => ({ name: d.state, value: d.nb_of_tasks }));
+  }
+
+
   toggle(section: 'details'|'members'|'managers') {
     this.open[section] = !this.open[section];
   }

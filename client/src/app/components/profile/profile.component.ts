@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
-import { UserExtendedReference } from '../../interfaces/user.interface';
+import { TaskUserExtendedReference } from '../../interfaces/user.interface';
 
 @Component({
   selector: 'app-profile',
@@ -19,14 +19,14 @@ export class ProfileComponent implements OnInit{
   private router = inject(Router);
   private userService = inject(UserService);
   private authService = inject(AuthService);
-  protected user = signal<UserExtendedReference>({_id: '', email: '', first_name: '', last_name: ''});
+  protected user = signal<TaskUserExtendedReference>({_id: '', email: '', first_name: '', last_name: ''});
   protected completedTasksCount = signal<number>(0);
   ngOnInit(): void {
     this.userService.getUserProfile().subscribe({
       next: (data) => this.user.set(data),
       error: () => this.user.set({_id: '', email: '', first_name: '', last_name: ''})
     });
-    this.userService.getUserTaskCountByState('Completed').subscribe({
+    this.userService.getUserTaskCountByState('COMPLETED').subscribe({
       next: (data) => {
         this.completedTasksCount.set(data[0].nb_of_tasks);
       },

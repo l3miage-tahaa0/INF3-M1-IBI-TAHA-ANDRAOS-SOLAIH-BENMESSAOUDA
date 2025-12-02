@@ -4,9 +4,7 @@ anyio==4.11.0
 bcrypt==4.3.0
 certifi==2025.10.5
 cffi==2.0.0
-click==8.3.0
 cryptography==46.0.3
-dnspython==2.8.0
 ecdsa==0.19.1
 email-validator==2.3.0
 fastapi==0.120.1
@@ -18,7 +16,6 @@ httptools==0.7.1
 httpx==0.28.1
 idna==3.11
 Jinja2==3.1.6
-markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
 motor==3.7.1

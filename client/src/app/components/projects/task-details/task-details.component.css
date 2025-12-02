@@ -12,9 +12,9 @@
 .task-title-pill { display:flex; align-items:center; gap:8px; flex: 0 0 auto }
 .task-title-text { color:white; font-weight:700 }
 .task-priority-pill { background:#ff8888; color:white; padding:6px 12px; border-radius:12px; font-weight:700 }
-.task-priority-pill.High { background:#ffb3b3; color:#a43a3a }
-.task-priority-pill.Medium { background:#ffd9a8; color:#a36a2b }
-.task-priority-pill.Low { background:#dff7d9; color:#2f7a3a }
+.task-priority-pill.HIGH { background:#ffb3b3; color:#a43a3a }
+.task-priority-pill.MEDIUM { background:#ffd9a8; color:#a36a2b }
+.task-priority-pill.LOW { background:#dff7d9; color:#2f7a3a }
 .title-actions { display:flex; gap:8px; margin-left:6px }
 .icon-btn { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:none; cursor:pointer; font-size:16px }
 .icon-btn:focus { outline:2px solid rgba(43,133,232,0.2) }

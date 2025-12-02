@@ -3,11 +3,15 @@
 	<div class="td-row">
 		<select [formControl]="control" (change)="onChange()">
 			<option value="">None</option>
-			<optgroup label="Managers" *ngIf="project?.managers?.length">
-				<option *ngFor="let m of project?.managers" [value]="m | json">{{ m.first_name }} {{ m.last_name }}</option>
+			<optgroup label="Managers">
+				<ng-container *ngFor="let m of project?.members">
+					<option *ngIf="m?.role === 'manager'" [value]="m | json">{{ m.first_name }} {{ m.last_name }}</option>
+				</ng-container>
 			</optgroup>
 			<optgroup label="Members" *ngIf="project?.members?.length">
-				<option *ngFor="let m of project?.members" [value]="m | json">{{ m.first_name }} {{ m.last_name }}</option>
+				<ng-container *ngFor="let m of project?.members">
+					<option *ngIf="m?.role === 'member'" [value]="m | json">{{ m.first_name }} {{ m.last_name }}</option>
+				</ng-container>
 			</optgroup>
 		</select>
 	</div>

@@ -24,9 +24,9 @@
 .tasks-list { padding: 18px }
 .task-item { background: #f6fbff; border-radius:12px; border:2px solid #2b85e8; padding:12px 16px; margin-bottom:12px; display:flex; align-items:center; gap:12px }
 .priority { display:inline-block; padding:6px 12px; border-radius:12px; font-weight:700 }
-.priority.High { background:#ffb3b3; color:#a43a3a }
-.priority.Medium { background:#ffd9a8; color:#a36a2b }
-.priority.Low { background:#dff7d9; color:#2f7a3a }
+.priority.HIGH { background:#ffb3b3; color:#a43a3a }
+.priority.MEDIUM { background:#ffd9a8; color:#a36a2b }
+.priority.LOW { background:#dff7d9; color:#2f7a3a }
 .task-title { flex:1; color:#2b85e8; font-weight:700 }
 .task-right { display:flex; align-items:center; gap:10px }
 .member-icon { width:22px; height:22px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="%232b85e8"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>'); background-size:contain; background-repeat:no-repeat }

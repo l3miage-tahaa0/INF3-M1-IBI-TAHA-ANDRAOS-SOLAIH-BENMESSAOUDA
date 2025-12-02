@@ -3,10 +3,11 @@ import logging
 
 from datetime import datetime
 from db import get_database
-from models import Project, CreateProjectRequest, CreateTaskRequest, Task, CreateProjectResponse, CreateTaskResponse, TaskUpdate
-from auth import get_current_user
+from services.auth import get_current_user
 from pymongo import ReturnDocument
 from bson import ObjectId
+from models.project import Project, CreateProjectRequest, CreateProjectResponse
+from models.task import Task, CreateTaskRequest, CreateTaskResponse, TaskUpdate
 
 logger = logging.getLogger("inf3-projet-api")
 
@@ -27,10 +28,7 @@ async def _fetch_project_for_user(project_id: str, current_user: dict):
         pid = project_id
     project = await get_database()["projects"].find_one({
         "_id": pid,
-        "$or": [
-            {"members._id": current_user["_id"]},
-            {"managers._id": current_user["_id"]}
-        ]
+        "members._id": current_user["_id"]
     })
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -45,10 +43,7 @@ async def get_projects(current_user: dict = Depends(get_current_user)):
     or a manager.
     """
     return await get_database()["projects"].find({
-        "$or": [
-            { "members._id": current_user["_id"] },
-            { "managers._id": current_user["_id"] }
-        ]
+        "members._id": current_user["_id"]
     }).to_list()
 
 @project_router.get("/{id}", response_model=Project)
@@ -78,10 +73,10 @@ async def get_total_tasks_per_project(id:str, current_user: dict = Depends(get_c
     ]
     return await get_database()["tasks"].aggregate(pipeline).to_list(None)
 
-@project_router.get("/{id}/tasks-breakdown")
-async def get_tasks_by_status_priority(id:str, current_user: dict = Depends(get_current_user)):
+@project_router.get("/{id}/tasks-state-priority-breakdown")
+async def get_tasks_by_state_priority(id:str, current_user: dict = Depends(get_current_user)):
     """
-    Provide a breakdown of tasks grouped by status and priority.
+    Provide a breakdown of tasks grouped by state and priority.
 
     Ensures the user can access the project, then groups tasks
     by their `state` and `priority` and returns counts.
@@ -93,7 +88,7 @@ async def get_tasks_by_status_priority(id:str, current_user: dict = Depends(get_
         {   
             "$group": {
                 "_id": {
-                    "status": "$state",
+                    "state": "$state",
                     "priority": "$priority"
                 },
                 "number_task": {"$sum": 1}
@@ -101,12 +96,14 @@ async def get_tasks_by_status_priority(id:str, current_user: dict = Depends(get_
         }
     ]
     return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
+
+
 @project_router.get("/{id}/tasks-productivity")
 async def get_top_productive_users(id:str,limit:int = 5,  current_user: dict = Depends(get_current_user)):
     """
     Return the top N users by number of completed tasks in the project.
 
-    Validates access, filters tasks in state "Completed", groups by
+    Validates access, filters tasks in state "COMPLETED", groups by
     the assignee and returns the top `limit` results sorted by count.
     """
     await _fetch_project_for_user(id, current_user)
@@ -114,33 +111,27 @@ async def get_top_productive_users(id:str,limit:int = 5,  current_user: dict = D
         {
             "$match": {
                 "project._id": ObjectId(id),
-                "state": "Completed",
-                }
+                "state": "COMPLETED",
+                "assigned_to._id": {"$exists": True}
+            }
         },
         {
             "$group": {
-                "_id": { "$toString": "$assigned_to._id" }, 
-                "tasks_completed": {"$sum": 1},
-                "member": { 
-                    "$addToSet":{
-                        "first_name": "$assigned_to.first_name"
-                    }
-                }
-                
+                "_id": {
+                    "user_id": {"$toString": "$assigned_to._id"},
+                    "first_name": "$assigned_to.first_name"
+                },
+                "tasks_completed": {"$sum": 1}
             }
         },
-        {"$unwind": "$member"},
         {
             "$project":{
                 "_id":0,
-                "first_name":"$member.first_name",
+                "first_name":"$_id.first_name",
                 "tasks_completed": 1
             }
         },
-        {
-            "$sort": {"tasks_completed": -1}
-        },
-        
+        {"$sort": {"tasks_completed": -1}},
         {"$limit": limit}
     ]
     return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
@@ -193,6 +184,32 @@ async def get_task_state_distribution(id:str,  current_user: dict = Depends(get_
     ]
     return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
 
+@project_router.get("/{id}/near-deadline")
+async def get_tasks_near_deadline(id: str, inXDays:int = 3, current_user: dict = Depends(get_current_user)):
+    """
+    Get tasks whose deadline is within the next 3 days and not completed
+    """
+    await _fetch_project_for_user(id, current_user)
+
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    in_X_days = now + timedelta(days=inXDays)
+
+    pipeline = [
+        {
+            "$match": {
+                "project._id": ObjectId(id),
+                "state": { "$ne": "COMPLETED" },
+                "deadline": { "$gte": now, "$lte": in_X_days }
+            }
+        },
+        {
+            "$sort": { "deadline": 1 }
+        }
+    ]
+
+    return await get_database()["tasks"].aggregate(pipeline).to_list(length=None)
+
 @project_router.post("/", response_model=CreateProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(project: CreateProjectRequest, current_user: dict = Depends(get_current_user)):
     """
@@ -203,17 +220,17 @@ async def create_project(project: CreateProjectRequest, current_user: dict = Dep
     project_doc = {
         "title": project.title,
         "description": project.description,
-        "managers": [{
+        "members": [{
             "_id": current_user["_id"],
             "first_name": current_user["first_name"],
             "last_name": current_user["last_name"],
-            "email": current_user["email"]
+            "email": current_user["email"],
+            "role": "manager"
         }],
-        "members": [],
         "created_at": datetime.now()
     }
     result = await get_database()["projects"].insert_one(project_doc)
-    print(f"Created project '{project.title}'")
+    logger.info(f"Created project '{project.title}'")
     return CreateProjectResponse(id=str(result.inserted_id))
 
 async def is_project_manager(project_id: str, user_id: str):
@@ -224,9 +241,17 @@ async def is_project_manager(project_id: str, user_id: str):
     404 if the project isn't found or the user isn't a manager. Returns
     the project document on success.
     """
+    try:
+        pid = ObjectId(project_id) if not isinstance(project_id, ObjectId) else project_id
+    except Exception:
+        pid = project_id
+    try:
+        uid = ObjectId(user_id) if not isinstance(user_id, ObjectId) else user_id
+    except Exception:
+        uid = user_id
     project = await get_database()["projects"].find_one({
-        "_id": project_id,
-        "managers._id": user_id
+        "_id": pid,
+        "members": {"$elemMatch": {"_id": uid, "role": "manager"}}
     })
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -242,8 +267,9 @@ async def delete_project(id: str, current_user: dict = Depends(get_current_user)
     """
 
     project = await is_project_manager(ObjectId(id), current_user["_id"])
+    deleted_tasks_result = await get_database()["tasks"].delete_many({"project._id": project["_id"]})
     await get_database()["projects"].delete_one({"_id": project["_id"]})
-    print(f"Deleted project '{project['title']}'")
+    logger.info(f"Deleted project '{project['title']}' and {deleted_tasks_result.deleted_count} tasks")
     return
 
 @project_router.post("/{id}/members/{user_email}", response_model=Project)
@@ -255,23 +281,25 @@ async def add_project_member(id: str, user_email: str, current_user: dict = Depe
     already part of the project, then adds them to the `members` array.
     Returns the project document.
     """
-    project = await is_project_manager(ObjectId(id), ObjectId(current_user["_id"]))
+    project = await is_project_manager(ObjectId(id), current_user["_id"])
     user = await get_database()["users"].find_one({"email": user_email})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if any(member["_id"] == user["_id"] for member in project["members"]) or any(manager["_id"] == user["_id"] for manager in project["managers"]):
-        raise HTTPException(status_code=400, detail="User is already a member or manager of the project")
-    await get_database()["projects"].update_one(
+    if any(member["_id"] == user["_id"] for member in project.get("members", [])):
+        raise HTTPException(status_code=400, detail="User is already a member of the project")
+    updated = await get_database()["projects"].find_one_and_update(
         {"_id": project["_id"]},
         {"$addToSet": {"members": {
             "_id": user["_id"],
             "first_name": user["first_name"],
             "last_name": user["last_name"],
-            "email": user["email"]
-        }}}
+            "email": user["email"],
+            "role": "member"
+        }}},
+        return_document=ReturnDocument.AFTER
     )
-    print(f"Added user '{user['first_name']} {user['last_name']}' to project '{project['title']}'")
-    return project
+    logger.info(f"Added user '{user['first_name']} {user['last_name']}' to project '{project['title']}'")
+    return updated
 
 @project_router.delete("/{id}/members/{user_email}", response_model=Project)
 async def remove_project_member(id: str, user_email: str, current_user: dict = Depends(get_current_user)):
@@ -282,15 +310,24 @@ async def remove_project_member(id: str, user_email: str, current_user: dict = D
     currently a member, and removes them from the `members` array.
     Returns the project document.
     """
-    project = await is_project_manager(ObjectId(id), ObjectId(current_user["_id"]))
-    if not any(member["email"] == user_email for member in project["members"]):
+    project = await is_project_manager(ObjectId(id), current_user["_id"])
+    user = await get_database()["users"].find_one({"email": user_email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not any(member["email"] == user_email for member in project.get("members", [])):
         raise HTTPException(status_code=400, detail="User is not a member of the project")
-    await get_database()["projects"].update_one(
-        {"_id": project["_id"]},
-        {"$pull": {"members": {"email": user_email}}}
+    await get_database()["tasks"].update_many(
+        {"project._id": project["_id"], "assigned_to._id": user["_id"]},
+        {"$set": {"assigned_to": None}}
     )
-    print(f"Removed user '{user_email}' from project '{project['title']}'")
-    return project
+
+    updated = await get_database()["projects"].find_one_and_update(
+        {"_id": project["_id"]},
+        {"$pull": {"members": {"email": user_email}}},
+        return_document=ReturnDocument.AFTER
+    )
+    logger.info(f"Removed user '{user_email}' from project '{project['title']}' and unassigned their tasks in the project")
+    return updated
 
 @project_router.delete("/{id}/managers/{user_email}", response_model=Project)
 async def remove_project_manager(id: str, user_email: str, current_user: dict = Depends(get_current_user)):
@@ -302,25 +339,21 @@ async def remove_project_manager(id: str, user_email: str, current_user: dict = 
     the `members` array.
     Returns the project document.
     """
-    project = await is_project_manager(ObjectId(id), ObjectId(current_user["_id"]))
+    project = await is_project_manager(ObjectId(id), current_user["_id"])
     user = await get_database()["users"].find_one({"email": user_email})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not any(manager["_id"] == ObjectId(user["_id"]) for manager in project["managers"]):
+    if not any(m.get("_id") == user["_id"] and m.get("role") == "manager" for m in project.get("members", [])):
         raise HTTPException(status_code=400, detail="User is not a manager of the project")
+
     await get_database()["projects"].update_one(
-        {"_id": project["_id"]},
-        {"$addToSet": {"members": {
-            "_id": user["_id"],
-            "first_name": user["first_name"],
-            "last_name": user["last_name"],
-            "email": user["email"]
-        }},
-        "$pull": {"managers": {"email":user_email}}}
+        {"_id": project["_id"], "members._id": user["_id"]},
+        {"$set": {"members.$.role": "member"}}
     )
-    print(f"Removed user '{user_email}' from project '{project['title']}'")
-    return project
+    updated = await get_database()["projects"].find_one({"_id": project["_id"]})
+    logger.info(f"Demoted user '{user_email}' to member in project '{project['title']}'")
+    return updated
 
 @project_router.post("/{id}/managers/{user_email}", response_model=Project)
 async def add_project_manager(id: str, user_email: str, current_user: dict = Depends(get_current_user)):
@@ -330,30 +363,24 @@ async def add_project_manager(id: str, user_email: str, current_user: dict = Dep
     Ensures the target user exists and is currently a member, then moves
     them from `members` to `managers`. Returns the project document.
     """
-    project = await is_project_manager(ObjectId(id), ObjectId(current_user["_id"]))
+    project = await is_project_manager(ObjectId(id), current_user["_id"])
     user = await get_database()["users"].find_one({"email": user_email})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if any(manager["_id"] == user["_id"] for manager in project["managers"]):
+    if any(m.get("_id") == user["_id"] and m.get("role") == "manager" for m in project.get("members", [])):
         raise HTTPException(status_code=400, detail="User is already a manager of the project")
-    if not any(member["_id"] == user["_id"] for member in project["members"]):
+    if not any(m.get("_id") == user["_id"] for m in project.get("members", [])):
         raise HTTPException(status_code=400, detail="User isn't already a member of the project")
-    await get_database()["projects"].update_one(
-        {"_id": project["_id"]},
-        {
-            "$addToSet": {"managers": {
-                "_id": user["_id"],
-                "first_name": user["first_name"],
-                "last_name": user["last_name"],
-                "email": user["email"]
-            }},
-            "$pull": {"members": {"_id": user["_id"]}}
-        }
-    )
-    print(f"Added user '{user['first_name']} {user['last_name']}' to project '{project['title']}'")
-    return project
 
-#TASKS
+    await get_database()["projects"].update_one(
+        {"_id": project["_id"], "members._id": user["_id"]},
+        {"$set": {"members.$.role": "manager"}}
+    )
+    updated = await get_database()["projects"].find_one({"_id": project["_id"]})
+    logger.info(f"Promoted user '{user['first_name']} {user['last_name']}' to manager in project '{project['title']}'")
+    return updated
+
+    
 @project_router.post("/{id}/tasks/", response_model=CreateTaskResponse, status_code=status.HTTP_201_CREATED)
 async def create_task(id: str, task: CreateTaskRequest, current_user: dict = Depends(get_current_user)):
     """
@@ -373,14 +400,14 @@ async def create_task(id: str, task: CreateTaskRequest, current_user: dict = Dep
             "project_title": project["title"]
         },
         "assigned_to": None,
-        "state": "Not Started",
+        "state": "NOT STARTED",
         "priority": task.priority,
         "deadline": task.deadline,
         "created_at": datetime.now(),
         "updated_at": datetime.now()
     }
     result = await get_database()["tasks"].insert_one(task_doc)
-    print(f"Created task '{task.title}'")
+    logger.info(f"Created task '{task.title}'")
     return CreateTaskResponse(id=str(result.inserted_id))
 
 @project_router.patch("/{project_id}/tasks/{task_id}", response_model=Task)
@@ -391,15 +418,15 @@ async def update_task(
     current_user = Depends(get_current_user)
 ):
     """
-        Update a task's fields with role-based permissions.
+    Update a task's fields with role-based permissions.
 
-        - Project managers may update title, description, priority, assigned_to,
-            deadline and state.
-        - The assigned user may update the task's `state`, but they are not
-            allowed to mark a task as `COMPLETED` (managers must do that).
+    - Project managers may update title, description, priority, assigned_to,
+        deadline and state.
+    - The assigned user may update the task's `state`, but they are not
+        allowed to mark a task as `COMPLETED` (managers must do that).
 
-        The function validates IDs, permission, and normalizes payloads
-        before performing an atomic update and returning the updated task.
+    The function validates IDs, permission, and normalizes payloads
+    before performing an atomic update and returning the updated task.
     """
     db = get_database()
     if not ObjectId.is_valid(task_id):
@@ -417,7 +444,7 @@ async def update_task(
     if not project:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Associated project not found.")
 
-    is_manager = any(m["_id"] == current_user["_id"] for m in project.get("managers", []))
+    is_manager = any(m.get("_id") == current_user["_id"] and m.get("role") == "manager" for m in project.get("members", []))
     assigned_to = task.get("assigned_to")
     assigned_id = None
     if isinstance(assigned_to, dict):
@@ -514,7 +541,7 @@ async def delete_task(project_id: str, task_id: str, current_user: dict = Depend
     Validates manager privileges and that the task belongs to the project,
     then deletes the task document.
     """
-    project = await is_project_manager(ObjectId(project_id), ObjectId(current_user["_id"]))
+    project = await is_project_manager(ObjectId(project_id), current_user["_id"])
     task = await get_database()["tasks"].find_one({
         "_id": ObjectId(task_id),
         "project._id": project["_id"]
@@ -522,5 +549,5 @@ async def delete_task(project_id: str, task_id: str, current_user: dict = Depend
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     await get_database()["tasks"].delete_one({"_id": task["_id"]})
-    print(f"Deleted task '{task['title']}' from project '{project['title']}'")
+    logger.info(f"Deleted task '{task['title']}' from project '{project['title']}'")
     return

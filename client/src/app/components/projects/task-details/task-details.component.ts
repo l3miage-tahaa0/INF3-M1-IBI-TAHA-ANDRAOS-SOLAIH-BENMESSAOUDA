@@ -8,7 +8,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 import { Project } from '../../../interfaces/project.interface';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
-import { UserExtendedReference } from '../../../interfaces/user.interface';
+import { TaskUserExtendedReference } from '../../../interfaces/user.interface';
 
 @Component({
   selector: 'app-task-details',
@@ -30,12 +30,12 @@ export class TaskDetailsComponent implements OnInit {
 
   // CSS class based on current task state
   get statusClass(): string {
-    const val = this.stateControl?.value || this.task()?.state || 'Not Started';
+    const val = this.stateControl?.value || this.task()?.state || 'NOT STARTED';
     switch (val) {
-      case 'In Progress': return 'status-in-progress';
-      case 'Submit for Validation': return 'status-submit-validation';
-      case 'Completed': return 'status-completed';
-      case 'Not Started':
+      case 'IN PROGRESS': return 'status-in-progress';
+      case 'SUBMITTED FOR VALIDATION': return 'status-submit-validation';
+      case 'COMPLETED': return 'status-completed';
+      case 'NOT STARTED':
       default:
         return 'status-not-started';
     }
@@ -49,7 +49,7 @@ export class TaskDetailsComponent implements OnInit {
         this.projectService.getProjectById(projectId).subscribe({
           next: (p) => {
             this.project.set(p);
-            this.isProjectManager.set(p.managers?.some(manager => manager.email === localStorage.getItem("userEmail")) || false);
+            this.isProjectManager.set(p.members?.some(member => (member.email === localStorage.getItem("userEmail")) && member.role === 'manager') || false);
           },
           error: (err) => console.error('Failed to load project', err)
         });

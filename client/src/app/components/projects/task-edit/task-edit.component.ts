@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Project } from '../../../interfaces/project.interface';
 import { Task } from '../../../interfaces/task.interface';
-import { UserExtendedReference } from '../../../interfaces/user.interface';
+import { TaskUserExtendedReference } from '../../../interfaces/user.interface';
 import { TeamDropdownComponent } from '../team-dropdown/team-dropdown.component';
 
 @Component({
@@ -63,7 +63,7 @@ export class TaskEditComponent implements OnChanges {
     }
   }
 
-  onassigned_toSelected(user: UserExtendedReference | null) {
+  onassigned_toSelected(user: TaskUserExtendedReference | null) {
     this.form.get('assigned_to')?.setValue(user ?? null);
   }
 

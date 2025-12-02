@@ -1,5 +1,5 @@
 import { ProjectExtendedReference } from "./project.interface";
-import { UserExtendedReference } from "./user.interface";
+import { TaskUserExtendedReference } from "./user.interface";
 
 export interface Task {
     _id: string;
@@ -9,7 +9,7 @@ export interface Task {
     priority: string;
     deadline: Date;
     project: ProjectExtendedReference;
-    assigned_to: UserExtendedReference | null;
+    assigned_to: TaskUserExtendedReference | null;
     created_at: Date;
     updated_at: Date;
 }

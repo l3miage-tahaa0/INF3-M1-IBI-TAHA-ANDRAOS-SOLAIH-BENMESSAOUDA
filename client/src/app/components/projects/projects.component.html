@@ -9,11 +9,14 @@
 		</div>
 
 		<div class="projects-list">
+			<div *ngIf="projects().length === 0" class="no-projects">
+				<p>No projects found. Click the "+" button to create a new project.</p>
+			</div>
 			<div class="project-item"  *ngFor="let p of projects()" (click)="goToProject(p._id)">
 				<div class="project-title">{{ p.title }}</div>
 				<div class="project-meta">
 					<span class="member-icon"></span>
-					<span class="member-count">{{ p.members.length + p.managers.length }}</span>
+					<span class="member-count">{{ p.members.length}}</span>
 				</div>
 			</div>
 		</div>

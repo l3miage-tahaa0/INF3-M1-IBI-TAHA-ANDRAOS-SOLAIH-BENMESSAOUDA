@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
+
+import logging
 
 from db import get_database
-from models import CreateUserRequest, UserDataResponse, TokenSchema, LoginUserRequest
+from models.user import CreateUserRequest, UserDataResponse, TokenSchema, LoginUserRequest
 from jose import JWTError, jwt
-from auth import get_password_hash, get_current_token, verify_password, create_refresh_token, create_access_token, get_current_user, credentials_exception
+from services.auth import get_password_hash, get_current_token, verify_password, create_refresh_token, create_access_token, get_current_user, credentials_exception
 from config import settings
 from pymongo.errors import DuplicateKeyError
+
+logger = logging.getLogger("inf3-projet-api")
 auth_router = APIRouter(prefix="/auth")
 
 @auth_router.post("/signup", response_model=UserDataResponse, status_code=status.HTTP_201_CREATED)
@@ -19,10 +21,12 @@ async def user_signup(user: CreateUserRequest):
     try:
         await db["users"].insert_one(user_in_db)
     except DuplicateKeyError:
+        logger.warning("Attempted signup with duplicate email: %s", user.email)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists."
         )
+    logger.info("User signed up: %s", user.email)
     return user
 
 @auth_router.post("/login", response_model=TokenSchema)
@@ -31,6 +35,7 @@ async def login(form_data: LoginUserRequest):
     user = await db["users"].find_one({"email": form_data.email})
     
     if not user or not verify_password(form_data.password, user["password"]):
+        logger.warning("Failed login attempt for email: %s", form_data.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -46,7 +51,7 @@ async def login(form_data: LoginUserRequest):
     await db["users"].update_one(
         {"_id": user["_id"]}, {"$set": {"hashed_refresh_token": hashed_refresh_token}}
     )
-    
+    logger.info("User logged in: %s", user["email"])
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -83,6 +88,8 @@ async def refresh_token(refresh_token: str = Depends(get_current_token)):
         {"_id": user["_id"]}, {"$set": {"hashed_refresh_token": new_hashed_refresh_token}}
     )
 
+    logger.info("Refresh token rotated for user: %s", email)
+
     return {
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,
@@ -96,5 +103,6 @@ async def logout(current_user: dict = Depends(get_current_user)):
     await db["users"].update_one(
         {"_id": current_user["_id"]}, {"$set": {"hashed_refresh_token": None}}
     )
+    logger.info("User logged out: %s", current_user.get("email"))
     return {"message": "Logout successful"}
 
