@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { UserExtendedReference } from '../../../interfaces/user.interface';
+import { TaskUserExtendedReference } from '../../../interfaces/user.interface';
 
 export interface TaskFormOutput {
   title: string;
@@ -24,7 +24,7 @@ export class TaskCreateComponent {
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
-      priority: ['Medium', Validators.required],
+      priority: ['MEDIUM', Validators.required],
       deadline: [''],
       description: ['', Validators.maxLength(2000)],
     });

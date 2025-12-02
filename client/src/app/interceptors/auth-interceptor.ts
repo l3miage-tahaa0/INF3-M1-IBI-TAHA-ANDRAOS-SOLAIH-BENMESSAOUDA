@@ -7,7 +7,7 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject, from } from 'rxjs';
-import { Auth } from '../services/auth';
+import { AuthService } from '../services/auth.service';
 import { catchError, filter, take, switchMap, finalize } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
@@ -16,7 +16,7 @@ export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
-  constructor(private authService: Auth, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     let req = this.addToken(request, this.authService.getAccessToken());

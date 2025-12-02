@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Project } from '../../../interfaces/project.interface';
 import { Task } from '../../../interfaces/task.interface';
-import { UserExtendedReference } from '../../../interfaces/user.interface';
+import { TaskUserExtendedReference } from '../../../interfaces/user.interface';
 import { TeamDropdownComponent } from '../team-dropdown/team-dropdown.component';
 
 @Component({
@@ -63,7 +63,7 @@ export class TaskEditComponent implements OnChanges {
     }
   }
 
-  onassigned_toSelected(user: UserExtendedReference | null) {
+  onassigned_toSelected(user: TaskUserExtendedReference | null) {
     this.form.get('assigned_to')?.setValue(user ?? null);
   }
 
@@ -72,13 +72,10 @@ export class TaskEditComponent implements OnChanges {
       this.form.markAllAsTouched();
       return;
     }
-    // build payload matching Task interface keys
-    const rawDeadline = this.form.value.deadline;
     const payload: Partial<Task> = {
       title: this.form.value.title,
       priority: this.form.value.priority,
-      // convert date string back to a Date (or null)
-      deadline: rawDeadline ? new Date(rawDeadline) : (null as any),
+      deadline: this.form.value.deadline,
       description: this.form.value.description,
       assigned_to: this.form.value.assigned_to || null
     };

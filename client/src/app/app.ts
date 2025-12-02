@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { Auth } from './services/auth';
+import { AuthService } from './services/auth.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -11,5 +11,5 @@ import { CommonModule } from '@angular/common';
 })
 export class App {
   protected readonly title = signal('client');
-  constructor(public authService: Auth) {}
+  constructor(public authService: AuthService) {}
 }

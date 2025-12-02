@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from config import settings
-from models import TokenData
+from models.user import TokenData
 from db import get_database
 
 #Password Hashing

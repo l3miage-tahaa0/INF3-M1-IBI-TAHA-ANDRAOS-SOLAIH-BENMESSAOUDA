@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Auth } from '../../services/auth';
+import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -16,7 +16,7 @@ export class Signup {
 
   constructor(
     private fb: FormBuilder,
-    private authService: Auth,
+    private authService: AuthService,
     private router: Router
   ) {
     this.signupForm = this.fb.group({

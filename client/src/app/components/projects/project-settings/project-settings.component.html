@@ -19,7 +19,48 @@
 
 					<label>Project Description</label>
 					<div class="field">{{ project()?.description }}</div>
-
+					<label>Task Count</label>
+					<div class="field">{{ taskCount() }}</div>
+					<label>Top 3 most productive members</label>
+					<div class="field">
+						<ng-container *ngIf="topProductiveMembers().length; else noData">
+							<ol>
+								<ng-container *ngFor="let member of topProductiveMembers()">
+									<li>{{ member.first_name }} - {{ member.tasks_completed }} tasks completed</li>
+								</ng-container>
+							</ol>
+						</ng-container>
+						<ng-template #noData>
+							<div>No productivity data available.</div>
+						</ng-template>
+					</div>
+					<label>Task State Priority Distribution</label>
+					<div class="field">
+						<ng-container *ngIf="taskPriorityStateDistribution().length; else noPriorityStateData">
+							<ul>
+								<ng-container *ngFor="let stateData of taskPriorityStateDistribution()">
+									<li>{{ stateData._id.state }} - {{ stateData._id.priority }}: {{ stateData.number_task }} tasks</li>
+								</ng-container>
+							</ul>
+						</ng-container>
+						<ng-template #noPriorityStateData>
+							<div>No task state priority data available.</div>
+						</ng-template>
+					</div>
+					<label>Task State Distribution</label>
+					<div class="field">
+						<ng-container *ngIf="tasksStateDistribution().length; else noStateData">
+							<ngx-charts-pie-chart
+								[results]="pieChartData"
+								[view]="pieChartView"
+								[legend]="pieChartLegend"
+								[labels]="pieChartLabels">
+							</ngx-charts-pie-chart>
+						</ng-container>
+						<ng-template #noStateData>
+							<div>No task state data available.</div>
+						</ng-template>
+					</div>
 					<div class="created">Created On {{ project()?.created_at | date }}</div>
 					<div class="created"><button class="delete-project" (click)="deleteProject()">Delete Project</button></div>		
 				</div>
@@ -39,11 +80,13 @@
 					</div>
 					<div class="error-message" *ngIf="addMemberError()">{{ addMemberError() }}</div>
                     <div class="member-list">
-                        <div class="member-item" *ngFor="let m of project()?.members">
-                            <span class="member-avatar">👤</span>
-                            <span class="member-name">{{m.first_name}} {{m.last_name}}</span>
-                            <button class="remove-btn" (click)="removeMember(m.email)">×</button>
-                        </div>
+						<ng-container *ngFor="let m of project()?.members">
+							<div class="member-item" *ngIf="m?.role === 'member'">
+								<span class="member-avatar">👤</span>
+								<span class="member-name">{{m.first_name}} {{m.last_name}}</span>
+								<button class="remove-btn" (click)="removeMember(m.email)">×</button>
+							</div>
+						</ng-container>
                     </div>
                 </div>
 			</div>
@@ -61,13 +104,15 @@
 						<button class="add-member" (click)="addManagerByEmail()"><span>+</span> Add</button>
 					</div>
 					<div class="error-message" *ngIf="addManagerError()">{{ addManagerError() }}</div>
-                    <div class="member-list">
-                        <div class="member-item" *ngFor="let m of project()?.managers">
-                            <span class="member-avatar">👤</span>
-                            <span class="member-name">{{m.first_name}} {{m.last_name}}</span>
-                            <button class="remove-btn" (click)="removeManager(m.email)">×</button>
-                        </div>
-                    </div>
+					<div class="member-list">
+						<ng-container *ngFor="let m of project()?.members">
+							<div class="member-item" *ngIf="m?.role === 'manager'">
+								<span class="member-avatar">👤</span>
+								<span class="member-name">{{m.first_name}} {{m.last_name}}</span>
+								<button class="remove-btn" (click)="removeManager(m.email)">×</button>
+							</div>
+						</ng-container>
+					</div>
                 </div>
 			</div>
 		</div>

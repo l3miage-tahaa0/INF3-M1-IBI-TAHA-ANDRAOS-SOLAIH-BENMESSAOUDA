@@ -8,7 +8,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 import { Project } from '../../../interfaces/project.interface';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
-import { UserExtendedReference } from '../../../interfaces/user.interface';
+import { TaskUserExtendedReference } from '../../../interfaces/user.interface';
 
 @Component({
   selector: 'app-task-details',
@@ -24,21 +24,23 @@ export class TaskDetailsComponent implements OnInit {
   protected project = signal<Project | undefined>(undefined);
   protected task = signal<Task | undefined>(undefined);
   protected editing = signal(false);
+  protected isProjectManager = signal(false);
+  protected isTaskAssignee = signal(false);
   stateControl = new FormControl('');
 
   // CSS class based on current task state
   get statusClass(): string {
-    const val = this.stateControl?.value || this.task()?.state || 'Not Started';
+    const val = this.stateControl?.value || this.task()?.state || 'NOT STARTED';
     switch (val) {
-      case 'In Progress': return 'status-in-progress';
-      case 'Submit for Validation': return 'status-submit-validation';
-      case 'Completed': return 'status-completed';
-      case 'Not Started':
+      case 'IN PROGRESS': return 'status-in-progress';
+      case 'SUBMITTED FOR VALIDATION': return 'status-submit-validation';
+      case 'COMPLETED': return 'status-completed';
+      case 'NOT STARTED':
       default:
         return 'status-not-started';
     }
   }
-
+  //TODO: Decrypt JWT token to get user role instead of checking email
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const projectId = params['id'];
@@ -47,14 +49,20 @@ export class TaskDetailsComponent implements OnInit {
         this.projectService.getProjectById(projectId).subscribe({
           next: (p) => {
             this.project.set(p);
-            if(!this.isProjectManager()){
-              this.stateControl.disable();
-            }
+            this.isProjectManager.set(p.members?.some(member => (member.email === localStorage.getItem("userEmail")) && member.role === 'manager') || false);
           },
           error: (err) => console.error('Failed to load project', err)
         });
         this.taskService.getTaskById(projectId, taskId).subscribe({
-          next: (t) => { this.task.set(t); this.stateControl.setValue(t.state || 'Not Started'); },
+          next: (t) => {
+            this.task.set(t);
+            console.log('Loaded task', t);
+            this.stateControl.setValue(t.state || 'Not Started');
+            this.isTaskAssignee.set(t.assigned_to?.email === localStorage.getItem("userEmail"));
+            if(!this.isProjectManager() && !this.isTaskAssignee()) {
+              this.stateControl.disable();
+            }
+          },
           error: (err) => {
             console.error('Failed to load task', err);
           }
@@ -122,11 +130,5 @@ export class TaskDetailsComponent implements OnInit {
     if (projectId && taskId) {
       this.router.navigate(['/projects', projectId, 'tasks', taskId, 'edit']);
     }
-  }
-  isProjectManager(): boolean {
-    const userEmail = localStorage.getItem("userEmail");
-    console.log("User Email:", userEmail);
-    const projectManagers: UserExtendedReference[] = this.project()?.managers || [];
-    return projectManagers.some(manager => manager.email === userEmail);
   }
 }

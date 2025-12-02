@@ -7,7 +7,7 @@ import { Task } from '../../../interfaces/task.interface';
 import { TaskService } from '../../../services/task.service';
 import { TaskCreateComponent } from '../task-create/task-create.component';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
-import { UserExtendedReference } from '../../../interfaces/user.interface';
+import { ProjectUserExtendedReference } from '../../../interfaces/user.interface';
 
 @Component({
   selector: 'app-project-details',
@@ -91,7 +91,7 @@ export class ProjectDetails implements OnInit{
   }
   isProjectManager(): boolean {
     const userEmail = localStorage.getItem("userEmail");
-    const projectManagers: UserExtendedReference[] = this.project()?.managers || [];
-    return projectManagers.some(manager => manager.email === userEmail);
+    const projectMembers: ProjectUserExtendedReference[] = this.project()?.members || [];
+    return projectMembers.some(member => member.email === userEmail && member.role === 'manager');
   }
 }

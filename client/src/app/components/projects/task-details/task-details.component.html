@@ -5,7 +5,7 @@
 		<div class="title-row">
 			<div class="task-title-pill">
 				<span class="task-title-text">{{ task()?.title }}</span>
-				<span class="task-priority-pill {{task()?.priority}}">{{ task()?.priority || 'Low' }}</span>
+				<span class="task-priority-pill {{task()?.priority}}">{{ task()?.priority || 'LOW' }}</span>
 			</div>
 			<div class="title-actions">
 				<button class="icon-btn task-edit-outside" (click)="startEdit()" aria-label="Edit">✎</button>
@@ -20,10 +20,10 @@
 				<div class="meta-item">👤 {{ task()?.assigned_to?.first_name }}</div>
 				<div class="status-select">
 					<select [formControl]="stateControl" [ngClass]="statusClass" (change)="changeState($any($event.target).value)">
-						<option>Not Started</option>
-						<option>In Progress</option>
-						<option>Submit for Validation</option>
-						<option>Completed</option>
+						<option [disabled]="task()?.state == 'NOT STARTED' || (!isProjectManager() && task()?.state == 'COMPLETED')">NOT STARTED</option>
+						<option [disabled]="task()?.state == 'IN PROGRESS' || (!isProjectManager() && task()?.state == 'COMPLETED')">IN PROGRESS</option>
+						<option [disabled]="task()?.state == 'SUBMITTED FOR VALIDATION' || (!isProjectManager() && task()?.state == 'COMPLETED')">SUBMITTED FOR VALIDATION</option>
+						<option [disabled]="!isProjectManager() || task()?.state == 'COMPLETED'">COMPLETED</option>
 					</select>
 				</div>
 			</div>

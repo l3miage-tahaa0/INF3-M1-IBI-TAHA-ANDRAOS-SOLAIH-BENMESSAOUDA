@@ -3,8 +3,6 @@
 <div class="profile-page">
   <div class="profile-card">
     <h1>My Profile</h1>
-    <div class="avatar">👤</div>
-
     <div class="info-row">
       <div class="info-icon">👤</div>
       <div class="info-text">{{ user().first_name }} {{ user().last_name }}</div>
@@ -14,6 +12,12 @@
       <div class="info-icon">✉️</div>
       <div class="info-text">{{ user().email }}</div>
     </div>
+
+    <div class="info-row">
+      <div class="info-icon">✔️</div>
+      <div class="info-text">Completed tasks: {{ completedTasksCount() }}</div>
+    </div>
+
 
     <div class="signout-row">
       <button class="signout-btn" (click)="signOut()">Sign Out</button>

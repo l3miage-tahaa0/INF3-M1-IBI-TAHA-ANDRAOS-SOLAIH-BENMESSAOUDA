@@ -33,3 +33,4 @@
 .project-meta { display:flex; align-items:center; gap:8px; color:#2b85e8 }
 .member-icon { width:22px; height:22px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="%232b85e8"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>'); background-size:contain; background-repeat:no-repeat }
 .member-count { font-weight:700 }
+.no-projects { text-align:center; color:#2b85e8; margin-top:40px; font-size: 32px; }

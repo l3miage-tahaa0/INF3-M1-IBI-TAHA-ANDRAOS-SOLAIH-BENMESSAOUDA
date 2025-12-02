@@ -4,15 +4,11 @@ import { Observable, BehaviorSubject, timer } from 'rxjs';
 import { tap, catchError, map, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { Project } from '../interfaces/project.interface';
-interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
-}
+import { AuthResponse } from '../interfaces/auth.interface';
 @Injectable({
   providedIn: 'root'
 })
-export class Auth {
+export class AuthService {
   private apiUrl = environment.apiUrl + 'auth';
 
   private accessTokenKey = 'access_token';

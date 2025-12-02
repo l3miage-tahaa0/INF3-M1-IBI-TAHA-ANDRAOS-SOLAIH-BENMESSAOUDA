@@ -34,4 +34,19 @@ export class ProjectService {
   demoteManagerToMember(projectId: string, memberId: string) {
     return this.http.delete<void>(`${this.apiUrl}/${projectId}/managers/${memberId}`);
   }
+  getUserProductivity(projectId: string) {
+    return this.http.get<{ first_name: string; tasks_completed: number }[]>(`${this.apiUrl}/${projectId}/tasks-productivity?limit=3`);
+  }
+  getTaskCountByProjectId(projectId: string) {
+    return this.http.get<{ total_tasks: number }[]>(`${this.apiUrl}/${projectId}/total-tasks`);
+  }
+  getTasksByStatePriority(projectId: string) {
+    return this.http.get<{_id: {state: string, priority: string}, number_task: number}[]>(`${this.apiUrl}/${projectId}/tasks-state-priority-breakdown`);
+  }
+  getTaskStateDistribution(projectId: string) {
+    return this.http.get<{state: string, nb_of_tasks: number, percentage: number}[]>(`${this.apiUrl}/${projectId}/tasks-state-distribution`);
+  }
+  getTasksNearingDeadlines(projectId: string, inXDays: number=5) {
+    return this.http.get<{ title: string; deadline: string }[]>(`${this.apiUrl}/${projectId}/tasks-nearing-deadlines?inXDays=${inXDays}`);
+  }
 }
